@@ -31,8 +31,8 @@ public class OrchestratorService {
     }
 
     public Mono<OrchestratorResponseDTO> registerUser(final RegisterDTO requestDTO){
-        Workflow orderWorkflow = this.getRegisterUserWorkflow(requestDTO);
-        Mono<OrchestratorResponseDTO> f = Flux.fromStream(() -> orderWorkflow.getSteps().stream())
+        Workflow workflow = this.getRegisterUserWorkflow(requestDTO);
+        Mono<OrchestratorResponseDTO> f = Flux.fromStream(() -> workflow.getSteps().stream())
                 .flatMap(WorkflowStep::process)
                 .handle(((aBoolean, synchronousSink) -> {
                     if(aBoolean)
@@ -41,7 +41,7 @@ public class OrchestratorService {
                         synchronousSink.error(new WorkflowException("register user failed!"));
                 }))
                 .then(Mono.fromCallable(() -> getResponseDTO(requestDTO, true, "")))
-                .onErrorResume(ex -> this.revertRegistration(orderWorkflow, requestDTO));
+                .onErrorResume(ex -> this.revertRegistration(workflow, requestDTO));
         f.subscribe();
         return f;
     }
