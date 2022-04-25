@@ -11,6 +11,7 @@ import com.auth.saga.workflow.impl.AuthWorkflowStep;
 import com.auth.saga.workflow.impl.ProfileWorkflowStep;
 import com.auth.service.UserService;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -31,7 +32,7 @@ public class OrchestratorService {
 
     public Mono<OrchestratorResponseDTO> registerUser(final RegisterDTO requestDTO){
         Workflow orderWorkflow = this.getRegisterUserWorkflow(requestDTO);
-        return Flux.fromStream(() -> orderWorkflow.getSteps().stream())
+        Mono<OrchestratorResponseDTO> f = Flux.fromStream(() -> orderWorkflow.getSteps().stream())
                 .flatMap(WorkflowStep::process)
                 .handle(((aBoolean, synchronousSink) -> {
                     if(aBoolean)
@@ -41,7 +42,8 @@ public class OrchestratorService {
                 }))
                 .then(Mono.fromCallable(() -> getResponseDTO(requestDTO, true, "")))
                 .onErrorResume(ex -> this.revertRegistration(orderWorkflow, requestDTO));
-
+        f.subscribe();
+        return f;
     }
 
     private Mono<? extends OrchestratorResponseDTO> revertRegistration(Workflow workflow, RegisterDTO requestDTO) {
@@ -59,6 +61,7 @@ public class OrchestratorService {
         workflowSteps.add(authWorkflowStep);
         ProfileWorkflowStep profileWorkflowStep = new ProfileWorkflowStep(profileClient, registerDTO);
         workflowSteps.add(profileWorkflowStep);
+
         return new Workflow(workflowSteps);
     }
 
