@@ -4,17 +4,18 @@ import com.auth.model.User;
 import com.auth.repository.UserRepository;
 import com.auth.saga.workflow.WorkflowStep;
 import com.auth.saga.workflow.WorkflowStepStatus;
+import com.auth.service.UserService;
 import reactor.core.publisher.Mono;
 
 public class AuthWorkflowStep implements WorkflowStep {
 
     private final User user;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private WorkflowStepStatus status = WorkflowStepStatus.PENDING;
 
-    public AuthWorkflowStep(User user, UserRepository userRepository) {
+    public AuthWorkflowStep(User user, UserService userService) {
         this.user = user;
-        this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     @Override
@@ -24,14 +25,14 @@ public class AuthWorkflowStep implements WorkflowStep {
 
     @Override
     public Mono<Boolean> process() {
-        userRepository.save(user);
+        userService.save(user);
         this.status = WorkflowStepStatus.COMPLETE;
         return Mono.just(true);
     }
 
     @Override
     public Mono<Boolean> revert() {
-        userRepository.delete(user);
+        userService.delete(user);
         return Mono.just(true);
     }
 }
