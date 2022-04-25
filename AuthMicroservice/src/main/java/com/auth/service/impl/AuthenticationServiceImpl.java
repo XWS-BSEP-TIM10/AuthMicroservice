@@ -10,12 +10,15 @@ import com.auth.security.util.TokenUtils;
 import com.auth.service.AuthenticationService;
 import com.auth.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
@@ -46,8 +49,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new UserAlreadyExistsException();
         }
 
-        OrchestratorService orchestrator = new OrchestratorService(userService);
+        OrchestratorService orchestrator = new OrchestratorService(userService, getProfileWebClient());
         return orchestrator.registerUser(registerDTO);
+    }
+
+    private WebClient getProfileWebClient() {
+        return WebClient.builder()
+                .baseUrl("http://localhost:8081/api/v1/profile/hello")
+                .clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
+                .build();
     }
 
     private String getToken(User user) {

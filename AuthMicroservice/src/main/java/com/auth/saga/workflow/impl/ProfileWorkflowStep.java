@@ -19,7 +19,6 @@ public class ProfileWorkflowStep implements WorkflowStep {
         this.requestDTO = requestDTO;
     }
 
-
     @Override
     public WorkflowStepStatus getStatus() {
         return null;
@@ -28,12 +27,14 @@ public class ProfileWorkflowStep implements WorkflowStep {
     @Override
     public Mono<Boolean> process() {
         return this.webClient
-                .post()
-                .uri("/inventory/deduct")
-                .body(BodyInserters.fromValue(this.requestDTO))
+                .get()
+                .uri("")
+                //.body(BodyInserters.fromValue(this.requestDTO))
                 .retrieve()
-                .bodyToMono(ProfileResponseDTO.class)
-                .map(r -> r.isSuccess())
+                //.bodyToMono(ProfileResponseDTO.class)
+                .bodyToMono(String.class)
+                //.map(r -> r.isSuccess())
+                .map(r -> true)
                 .doOnNext(b -> this.stepStatus = b ? WorkflowStepStatus.COMPLETE : WorkflowStepStatus.FAILED);
     }
 

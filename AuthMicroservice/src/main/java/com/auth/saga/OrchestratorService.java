@@ -2,30 +2,31 @@ package com.auth.saga;
 
 import com.auth.dto.RegisterDTO;
 import com.auth.exception.WorkflowException;
-import com.auth.model.Role;
 import com.auth.model.User;
-import com.auth.repository.UserRepository;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.saga.workflow.Workflow;
 import com.auth.saga.workflow.WorkflowStep;
 import com.auth.saga.workflow.WorkflowStepStatus;
 import com.auth.saga.workflow.impl.AuthWorkflowStep;
-import com.auth.service.RoleService;
+import com.auth.saga.workflow.impl.ProfileWorkflowStep;
 import com.auth.service.UserService;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
 public class OrchestratorService {
 
     private final UserService userService;
 
-    public OrchestratorService(UserService userService) {
+    private final WebClient profileClient;
+
+    public OrchestratorService(UserService userService, WebClient profileClient) {
         this.userService = userService;
+        this.profileClient = profileClient;
     }
 
     public Mono<OrchestratorResponseDTO> registerUser(final RegisterDTO requestDTO){
@@ -56,8 +57,8 @@ public class OrchestratorService {
         User user = new User(registerDTO.getUsername(), registerDTO.getPassword(), null);
         AuthWorkflowStep authWorkflowStep = new AuthWorkflowStep(user, userService);
         workflowSteps.add(authWorkflowStep);
-        //ProfileWorkflowStep profileWorkflowStep = new ProfileWorkflowStep(profileClient,registerDTO);
-        //workflowSteps.add(profileWorkflowStep);
+        ProfileWorkflowStep profileWorkflowStep = new ProfileWorkflowStep(profileClient, registerDTO);
+        workflowSteps.add(profileWorkflowStep);
         return new Workflow(workflowSteps);
     }
 
