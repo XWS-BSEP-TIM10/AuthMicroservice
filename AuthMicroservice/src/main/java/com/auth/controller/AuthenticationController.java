@@ -1,8 +1,10 @@
 package com.auth.controller;
 
 import com.auth.dto.LoginDTO;
+import com.auth.dto.RegisterDTO;
 import com.auth.dto.TokenDTO;
 import com.auth.service.AuthenticationService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,6 +21,17 @@ public class AuthenticationController {
 
     public AuthenticationController(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<RegisterDTO> addUser(@RequestBody RegisterDTO registerDTO) {
+        //authenticationService.signUpClient(new Client(userDto));
+        try {
+            authenticationService.signUp(registerDTO);
+        } catch (Exception e) {
+
+        }
+        return new ResponseEntity<>(registerDTO, HttpStatus.CREATED);
     }
 
     @PostMapping(value = "/login")
