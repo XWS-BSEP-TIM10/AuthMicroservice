@@ -4,6 +4,8 @@ import com.auth.dto.RegisterDTO;
 import com.auth.saga.dto.ProfileResponseDTO;
 import com.auth.saga.workflow.WorkflowStep;
 import com.auth.saga.workflow.WorkflowStepStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -22,20 +24,21 @@ public class ProfileWorkflowStep implements WorkflowStep {
 
     @Override
     public WorkflowStepStatus getStatus() {
-        return null;
+        return stepStatus;
     }
 
     @Override
     public Mono<Boolean> process() {
-        final String uri = "api/v1/profile/hello";
+        final String uri = "api/v1/profiles";
         return this.webClient
-                .get()
+                .post()
                 .uri(uri)
-                //.body(BodyInserters.fromValue(this.requestDTO))
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .body(Mono.just(requestDTO), RegisterDTO.class)
                 .retrieve()
-                //.bodyToMono(ProfileResponseDTO.class)
-                .bodyToMono(String.class)
-                //.map(r -> r.isSuccess())
+                .bodyToMono(ProfileResponseDTO.class)
+                //.bodyToMono(String.class)
+                .map(ProfileResponseDTO::isSuccess)
                 .map(r -> true)
                 .doOnNext(b -> this.stepStatus = b ? WorkflowStepStatus.COMPLETE : WorkflowStepStatus.FAILED);
     }
