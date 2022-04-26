@@ -6,8 +6,6 @@ import com.auth.saga.workflow.WorkflowStep;
 import com.auth.saga.workflow.WorkflowStepStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -16,6 +14,7 @@ public class ProfileWorkflowStep implements WorkflowStep {
     private final WebClient webClient;
     private final RegisterDTO requestDTO;
     private WorkflowStepStatus stepStatus = WorkflowStepStatus.PENDING;
+    private final String uri = "api/v1/profiles";
 
     public ProfileWorkflowStep(WebClient webClient, RegisterDTO requestDTO) {
         this.webClient = webClient;
@@ -29,7 +28,7 @@ public class ProfileWorkflowStep implements WorkflowStep {
 
     @Override
     public Mono<Boolean> process() {
-        final String uri = "api/v1/profiles";
+
         return this.webClient
                 .post()
                 .uri(uri)
@@ -45,6 +44,17 @@ public class ProfileWorkflowStep implements WorkflowStep {
 
     @Override
     public Mono<Boolean> revert() {
-        return null;
+
+        return this.webClient
+                .post()
+                .uri(uri + requestDTO.getUsername())
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .body(Mono.just(requestDTO), RegisterDTO.class)
+                .retrieve()
+                .bodyToMono(ProfileResponseDTO.class)
+                //.bodyToMono(String.class)
+                .map(ProfileResponseDTO::isSuccess)
+                .map(r -> true)
+                .doOnNext(b -> this.stepStatus = b ? WorkflowStepStatus.COMPLETE : WorkflowStepStatus.FAILED);
     }
 }

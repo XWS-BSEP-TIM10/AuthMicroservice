@@ -3,6 +3,8 @@ package com.auth.controller;
 import com.auth.dto.LoginDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.dto.TokenDTO;
+import com.auth.exception.UserAlreadyExistsException;
+import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
 
@@ -27,13 +30,14 @@ public class AuthenticationController {
 
     @PostMapping("/signup")
     public ResponseEntity<RegisterDTO> addUser(@RequestBody RegisterDTO registerDTO) {
-        //authenticationService.signUpClient(new Client(userDto));
         try {
-            authenticationService.signUp(registerDTO);
-        } catch (Exception e) {
-
+            OrchestratorResponseDTO response = authenticationService.signUp(registerDTO).block();
+            if(!response.getSuccess())
+                return new ResponseEntity<>(registerDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(registerDTO, HttpStatus.CREATED);
+        } catch (UserAlreadyExistsException e) {
+            return new ResponseEntity<>(registerDTO, HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(registerDTO, HttpStatus.CREATED);
     }
 
     @PostMapping(value = "/login")
