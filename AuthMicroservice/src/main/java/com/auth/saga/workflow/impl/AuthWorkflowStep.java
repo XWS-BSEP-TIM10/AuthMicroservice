@@ -1,7 +1,6 @@
 package com.auth.saga.workflow.impl;
 
 import com.auth.model.User;
-import com.auth.repository.UserRepository;
 import com.auth.saga.workflow.WorkflowStep;
 import com.auth.saga.workflow.WorkflowStepStatus;
 import com.auth.service.UserService;
@@ -25,8 +24,15 @@ public class AuthWorkflowStep implements WorkflowStep {
 
     @Override
     public Mono<Boolean> process() {
+        if (userService.userExists(user.getUsername())) {
+            return Mono.just(false);
+        }
         userService.save(user);
         this.status = WorkflowStepStatus.COMPLETE;
+//        try {
+//            Thread.sleep(3000);
+//        } catch (Exception e) {
+//        }
         return Mono.just(true);
     }
 

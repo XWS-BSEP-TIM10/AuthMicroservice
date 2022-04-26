@@ -2,7 +2,6 @@ package com.auth.service.impl;
 
 import com.auth.dto.RegisterDTO;
 import com.auth.dto.TokenDTO;
-import com.auth.exception.UserAlreadyExistsException;
 import com.auth.model.User;
 import com.auth.saga.OrchestratorService;
 import com.auth.saga.dto.OrchestratorResponseDTO;
@@ -44,11 +43,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public Mono<OrchestratorResponseDTO> signUp(RegisterDTO registerDTO) throws UserAlreadyExistsException {
-        if (userService.userExists(registerDTO.getUsername())) {
-            throw new UserAlreadyExistsException();
-        }
-
+    public Mono<OrchestratorResponseDTO> signUp(RegisterDTO registerDTO) {
         OrchestratorService orchestrator = new OrchestratorService(userService, getProfileWebClient());
         return orchestrator.registerUser(registerDTO);
     }

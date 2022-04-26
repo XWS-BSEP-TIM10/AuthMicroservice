@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
 
@@ -32,11 +31,11 @@ public class AuthenticationController {
     public ResponseEntity<RegisterDTO> addUser(@RequestBody RegisterDTO registerDTO) {
         try {
             OrchestratorResponseDTO response = authenticationService.signUp(registerDTO).block();
-            if(!response.getSuccess())
-                return new ResponseEntity<>(registerDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+            if (!response.getSuccess())
+                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
             return new ResponseEntity<>(registerDTO, HttpStatus.CREATED);
         } catch (UserAlreadyExistsException e) {
-            return new ResponseEntity<>(registerDTO, HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -45,5 +44,5 @@ public class AuthenticationController {
         TokenDTO tokenDTO = authenticationService.login(loginDTO.getUsername(), loginDTO.getPassword());
         return ResponseEntity.ok(tokenDTO);
     }
-    
+
 }

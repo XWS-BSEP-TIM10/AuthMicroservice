@@ -13,6 +13,7 @@ public class ProfileWorkflowStep implements WorkflowStep {
 
     private final WebClient webClient;
     private final RegisterDTO requestDTO;
+    private ProfileResponseDTO profileResponseDTO;
     private WorkflowStepStatus stepStatus = WorkflowStepStatus.PENDING;
     private final String uri = "api/v1/profiles";
 
@@ -36,20 +37,20 @@ public class ProfileWorkflowStep implements WorkflowStep {
                 .body(Mono.just(requestDTO), RegisterDTO.class)
                 .retrieve()
                 .bodyToMono(ProfileResponseDTO.class)
+                .doOnNext(val -> this.profileResponseDTO = val)
                 //.bodyToMono(String.class)
                 .map(ProfileResponseDTO::isSuccess)
-                .map(r -> true)
+                //.map(r -> true)
                 .doOnNext(b -> this.stepStatus = b ? WorkflowStepStatus.COMPLETE : WorkflowStepStatus.FAILED);
     }
 
     @Override
     public Mono<Boolean> revert() {
-
         return this.webClient
-                .post()
-                .uri(uri + requestDTO.getUsername())
+                .delete()
+                .uri(uri + "/" + profileResponseDTO.getId())
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .body(Mono.just(requestDTO), RegisterDTO.class)
+                //.body(Mono.just(requestDTO), RegisterDTO.class)
                 .retrieve()
                 .bodyToMono(ProfileResponseDTO.class)
                 //.bodyToMono(String.class)
