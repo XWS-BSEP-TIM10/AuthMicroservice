@@ -27,21 +27,17 @@ public class ProfileWorkflowStep implements WorkflowStep {
 
     @Override
     public Mono<Boolean> process() {
-        final String uri = "http://localhost:8081/api/v1/profile/hello";
-
-        RestTemplate restTemplate = new RestTemplate();
-        String result = restTemplate.getForObject(uri, String.class);
-        return Mono.just(true);
-//          return this.webClient
-//                .get()
-//                .uri("")
-//                //.body(BodyInserters.fromValue(this.requestDTO))
-//                .retrieve()
-//                //.bodyToMono(ProfileResponseDTO.class)
-//                .bodyToMono(String.class)
-//                //.map(r -> r.isSuccess())
-//                .map(r -> true)
-//                .doOnNext(b -> this.stepStatus = b ? WorkflowStepStatus.COMPLETE : WorkflowStepStatus.FAILED);
+        final String uri = "api/v1/profile/hello";
+        return this.webClient
+                .get()
+                .uri(uri)
+                //.body(BodyInserters.fromValue(this.requestDTO))
+                .retrieve()
+                //.bodyToMono(ProfileResponseDTO.class)
+                .bodyToMono(String.class)
+                //.map(r -> r.isSuccess())
+                .map(r -> true)
+                .doOnNext(b -> this.stepStatus = b ? WorkflowStepStatus.COMPLETE : WorkflowStepStatus.FAILED);
     }
 
     @Override

@@ -55,7 +55,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private WebClient getProfileWebClient() {
         return WebClient.builder()
-                .baseUrl("http://localhost:8081/api/v1/profile/hello")
+                .baseUrl("http://localhost:8081/")
                 .clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
                 .build();
     }
