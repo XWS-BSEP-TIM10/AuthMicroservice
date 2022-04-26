@@ -24,6 +24,7 @@ public class AuthWorkflowStep implements WorkflowStep {
 
     @Override
     public Mono<Boolean> process() {
+        status = WorkflowStepStatus.START;
         if (userService.userExists(user.getUsername())) {
             return Mono.just(false);
         }

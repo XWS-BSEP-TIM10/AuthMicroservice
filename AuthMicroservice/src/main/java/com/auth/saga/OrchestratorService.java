@@ -43,13 +43,12 @@ public class OrchestratorService {
     }
 
     private Mono<? extends OrchestratorResponseDTO> revertRegistration(Workflow workflow, RegisterDTO requestDTO) {
-        Mono<OrchestratorResponseDTO> f = Flux.fromStream(() -> workflow.getSteps().stream())
-                .filter(wf -> !wf.getStatus().equals(WorkflowStepStatus.FAILED))
+        return Flux.fromStream(() -> workflow.getSteps().stream())
+
+                .filter(wf -> wf.getStatus() == WorkflowStepStatus.COMPLETE || wf.getStatus() == WorkflowStepStatus.START)
                 .flatMap(WorkflowStep::revert)
                 .retry(3)
                 .then(Mono.just(getResponseDTO(requestDTO, false, "register user failed!")));
-        //f.subscribe();
-        return f;
     }
 
     private Workflow getRegisterUserWorkflow(RegisterDTO registerDTO) {
