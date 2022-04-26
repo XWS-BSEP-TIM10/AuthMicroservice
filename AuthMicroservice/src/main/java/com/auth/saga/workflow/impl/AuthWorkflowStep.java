@@ -29,10 +29,7 @@ public class AuthWorkflowStep implements WorkflowStep {
         }
         userService.save(user);
         this.status = WorkflowStepStatus.COMPLETE;
-//        try {
-//            Thread.sleep(3000);
-//        } catch (Exception e) {
-//        }
+
         return Mono.just(true);
     }
 
