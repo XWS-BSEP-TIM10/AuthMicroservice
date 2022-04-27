@@ -1,10 +1,6 @@
 package com.auth.dto;
 
-import java.util.UUID;
-
-public class RegisterDTO {
-
-    private String uuid;
+public class NewUserDTO {
 
     private String firstName;
 
@@ -24,11 +20,10 @@ public class RegisterDTO {
 
     private String biography;
 
-    public RegisterDTO() {
+    public NewUserDTO() {
     }
 
-    public RegisterDTO(String id, String firstName, String lastName, String email, String phoneNumber, String gender, String dateOfBirth, String username, String password, String biography) {
-        this.uuid = id;
+    public NewUserDTO(String firstName, String lastName, String email, String phoneNumber, String gender, String dateOfBirth, String username, String password, String biography) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -38,27 +33,6 @@ public class RegisterDTO {
         this.username = username;
         this.password = password;
         this.biography = biography;
-    }
-
-    public RegisterDTO(UUID uuid, NewUserDTO newUserDTO) {
-        this.uuid = uuid.toString();
-        this.firstName = newUserDTO.getFirstName();
-        this.lastName = newUserDTO.getLastName();
-        this.email = newUserDTO.getEmail();
-        this.phoneNumber = newUserDTO.getPhoneNumber();
-        this.gender = newUserDTO.getGender();
-        this.dateOfBirth = newUserDTO.getDateOfBirth();
-        this.username = newUserDTO.getUsername();
-        this.password = newUserDTO.getPassword();
-        this.biography = newUserDTO.getBiography();
-    }
-
-    public String getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
     }
 
     public String getFirstName() {

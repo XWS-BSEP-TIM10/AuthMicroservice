@@ -1,5 +1,6 @@
 package com.auth.service.impl;
 
+import com.auth.dto.NewUserDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.dto.TokenDTO;
 import com.auth.model.User;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
+
+import java.util.UUID;
 
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
@@ -43,7 +46,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public Mono<OrchestratorResponseDTO> signUp(RegisterDTO registerDTO) {
+    public Mono<OrchestratorResponseDTO> signUp(NewUserDTO newUserDTO) {
+        RegisterDTO registerDTO = new RegisterDTO(UUID.randomUUID(), newUserDTO);
         OrchestratorService orchestrator = new OrchestratorService(userService, getProfileWebClient(), getConnectionsWebClient());
         return orchestrator.registerUser(registerDTO);
     }

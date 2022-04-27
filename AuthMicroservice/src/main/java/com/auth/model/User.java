@@ -3,15 +3,7 @@ package com.auth.model;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -23,6 +15,9 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(unique = true)
+    private String uuid;
 
     @Column(name = "username", unique = true, nullable = false)
     private String username;
@@ -38,8 +33,9 @@ public class User implements UserDetails {
     }
 
 
-    public User(String username, String password, Role userType) {
+    public User(String uuid, String username, String password, Role userType) {
         super();
+        this.uuid = uuid;
         this.username = username;
         this.password = password;
         this.role = userType;
@@ -51,6 +47,14 @@ public class User implements UserDetails {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String id) {
+        this.uuid = id;
     }
 
     public String getusername() {

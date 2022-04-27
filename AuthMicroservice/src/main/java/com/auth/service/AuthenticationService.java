@@ -1,5 +1,6 @@
 package com.auth.service;
 
+import com.auth.dto.NewUserDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.dto.TokenDTO;
 import com.auth.exception.UserAlreadyExistsException;
@@ -9,5 +10,5 @@ import reactor.core.publisher.Mono;
 public interface AuthenticationService {
     TokenDTO login(String username, String password);
 
-    Mono<OrchestratorResponseDTO> signUp(RegisterDTO registerDTO) throws UserAlreadyExistsException;
+    Mono<OrchestratorResponseDTO> signUp(NewUserDTO newUserDTO) throws UserAlreadyExistsException;
 }

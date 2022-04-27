@@ -1,6 +1,7 @@
 package com.auth.controller;
 
 import com.auth.dto.LoginDTO;
+import com.auth.dto.NewUserDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.dto.TokenDTO;
 import com.auth.exception.UserAlreadyExistsException;
@@ -28,12 +29,12 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<RegisterDTO> addUser(@RequestBody RegisterDTO registerDTO) {
+    public ResponseEntity<NewUserDTO> addUser(@RequestBody NewUserDTO newUserDTO) {
         try {
-            OrchestratorResponseDTO response = authenticationService.signUp(registerDTO).block();
+            OrchestratorResponseDTO response = authenticationService.signUp(newUserDTO).block();
             if (!response.getSuccess())
                 return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-            return new ResponseEntity<>(registerDTO, HttpStatus.CREATED);
+            return new ResponseEntity<>(newUserDTO, HttpStatus.CREATED);
         } catch (UserAlreadyExistsException e) {
             return ResponseEntity.badRequest().build();
         }
