@@ -44,13 +44,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public Mono<OrchestratorResponseDTO> signUp(RegisterDTO registerDTO) {
-        OrchestratorService orchestrator = new OrchestratorService(userService, getProfileWebClient());
+        OrchestratorService orchestrator = new OrchestratorService(userService, getProfileWebClient(), getConnectionsWebClient());
         return orchestrator.registerUser(registerDTO);
     }
 
     private WebClient getProfileWebClient() {
         return WebClient.builder()
                 .baseUrl("http://localhost:8081/")
+                .clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
+                .build();
+    }
+
+    private WebClient getConnectionsWebClient() {
+        return WebClient.builder()
+                .baseUrl("http://localhost:8082/")
                 .clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
                 .build();
     }

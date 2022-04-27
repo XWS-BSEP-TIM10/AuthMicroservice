@@ -32,7 +32,7 @@ public class AuthenticationController {
         try {
             OrchestratorResponseDTO response = authenticationService.signUp(registerDTO).block();
             if (!response.getSuccess())
-                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
             return new ResponseEntity<>(registerDTO, HttpStatus.CREATED);
         } catch (UserAlreadyExistsException e) {
             return ResponseEntity.badRequest().build();

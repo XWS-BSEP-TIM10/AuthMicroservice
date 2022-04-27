@@ -1,5 +1,6 @@
 package com.auth.saga;
 
+import com.auth.dto.ConnectionsRegisterDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.exception.WorkflowException;
 import com.auth.model.User;
@@ -8,6 +9,7 @@ import com.auth.saga.workflow.Workflow;
 import com.auth.saga.workflow.WorkflowStep;
 import com.auth.saga.workflow.WorkflowStepStatus;
 import com.auth.saga.workflow.impl.AuthWorkflowStep;
+import com.auth.saga.workflow.impl.ConnectionsWorkflowStep;
 import com.auth.saga.workflow.impl.ProfileWorkflowStep;
 import com.auth.service.UserService;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -23,9 +25,12 @@ public class OrchestratorService {
 
     private final WebClient profileClient;
 
-    public OrchestratorService(UserService userService, WebClient profileClient) {
+    private final WebClient connectionsClient;
+
+    public OrchestratorService(UserService userService, WebClient profileClient, WebClient connectionsClient) {
         this.userService = userService;
         this.profileClient = profileClient;
+        this.connectionsClient = connectionsClient;
     }
 
     public Mono<OrchestratorResponseDTO> registerUser(final RegisterDTO requestDTO) {
@@ -55,11 +60,15 @@ public class OrchestratorService {
         List<WorkflowStep> workflowSteps = new ArrayList<>();
 
         User user = new User(registerDTO.getUsername(), registerDTO.getPassword(), null);
-        ProfileWorkflowStep profileWorkflowStep = new ProfileWorkflowStep(profileClient, registerDTO);
-        workflowSteps.add(profileWorkflowStep);
+
         AuthWorkflowStep authWorkflowStep = new AuthWorkflowStep(user, userService);
         workflowSteps.add(authWorkflowStep);
 
+        ProfileWorkflowStep profileWorkflowStep = new ProfileWorkflowStep(profileClient, registerDTO);
+        workflowSteps.add(profileWorkflowStep);
+
+        ConnectionsWorkflowStep connectionsWorkflowStep = new ConnectionsWorkflowStep(connectionsClient, new ConnectionsRegisterDTO(registerDTO.getUsername()));
+        workflowSteps.add(connectionsWorkflowStep);
 
         return new Workflow(workflowSteps);
     }

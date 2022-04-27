@@ -1,5 +1,6 @@
 package com.auth.saga.workflow.impl;
 
+import com.auth.dto.ConnectionsRegisterDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.saga.dto.ProfileResponseDTO;
 import com.auth.saga.workflow.WorkflowStep;
@@ -9,21 +10,22 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-public class ProfileWorkflowStep implements WorkflowStep {
+public class ConnectionsWorkflowStep implements WorkflowStep {
 
     private final WebClient webClient;
-    private final RegisterDTO requestDTO;
+    private final ConnectionsRegisterDTO requestDTO;
     private ProfileResponseDTO profileResponseDTO;
     private WorkflowStepStatus stepStatus = WorkflowStepStatus.PENDING;
     private boolean started = false;
     private Mono<Boolean> request;
 
-    private final String uri = "api/v1/profiles";
+    private final String uri = "/api/v1/users";
 
-    public ProfileWorkflowStep(WebClient webClient, RegisterDTO requestDTO) {
+    public ConnectionsWorkflowStep(WebClient webClient, ConnectionsRegisterDTO requestDTO) {
         this.webClient = webClient;
         this.requestDTO = requestDTO;
     }
+
 
     @Override
     public WorkflowStepStatus getStatus() {
@@ -51,7 +53,6 @@ public class ProfileWorkflowStep implements WorkflowStep {
     @Override
     public Mono<Boolean> revert() {
 
-
         if (this.stepStatus == WorkflowStepStatus.FAILED)
             return Mono.just(true);
         //request.block();
@@ -67,6 +68,5 @@ public class ProfileWorkflowStep implements WorkflowStep {
                 //.bodyToMono(String.class)
                 .map(ProfileResponseDTO::isSuccess)
                 .map(r -> true);
-
     }
 }
