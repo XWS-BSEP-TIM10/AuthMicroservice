@@ -40,8 +40,8 @@ public class RegisterDTO {
         this.biography = biography;
     }
 
-    public RegisterDTO(UUID uuid, NewUserDTO newUserDTO) {
-        this.uuid = uuid.toString();
+    public RegisterDTO(String uuid, NewUserDTO newUserDTO) {
+        this.uuid = uuid;
         this.firstName = newUserDTO.getFirstName();
         this.lastName = newUserDTO.getLastName();
         this.email = newUserDTO.getEmail();

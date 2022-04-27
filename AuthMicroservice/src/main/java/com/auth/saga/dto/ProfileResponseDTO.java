@@ -2,20 +2,20 @@ package com.auth.saga.dto;
 
 public class ProfileResponseDTO {
 
-    private Long id;
+    private String id;
     private boolean success;
     private String message;
 
     public ProfileResponseDTO() {
     }
 
-    public ProfileResponseDTO(Long id, boolean success, String message) {
+    public ProfileResponseDTO(String id, boolean success, String message) {
         this.id = id;
         this.success = success;
         this.message = message;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
