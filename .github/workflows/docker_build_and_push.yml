@@ -2,7 +2,7 @@ name: Build & Push Docker image
 on:
   push:
     branches:
-      - feat/dockerfile
+      - main
 
 env:
   PROJECT_DIR: AuthMicroservice
