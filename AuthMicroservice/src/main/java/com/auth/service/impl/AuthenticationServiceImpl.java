@@ -55,15 +55,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     private WebClient getProfileWebClient() {
+        String profileHost = System.getenv("PROFILE_HOST") == null ? "localhost" : System.getenv("PROFILE_HOST");
+        String profilePort = System.getenv("PROFILE_PORT") == null ? "8081" : System.getenv("PROFILE_PORT");
+        String baseUrl = String.format("http://%s:%s/", profileHost, profilePort);
         return WebClient.builder()
-                .baseUrl("http://localhost:8081/")
+                .baseUrl(baseUrl)
                 .clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
                 .build();
     }
 
     private WebClient getConnectionsWebClient() {
+        String connectionsHost = System.getenv("CONNECTIONS_HOST") == null ? "localhost" : System.getenv("CONNECTIONS_HOST");
+        String connectionsPort = System.getenv("CONNECTIONS_PORT") == null ? "8082" : System.getenv("CONNECTIONS_PORT");
+        String baseUrl = String.format("http://%s:%s/", connectionsHost, connectionsPort);
         return WebClient.builder()
-                .baseUrl("http://localhost:8082/")
+                .baseUrl(baseUrl)
                 .clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
                 .build();
     }
