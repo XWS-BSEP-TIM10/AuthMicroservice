@@ -1,4 +1,4 @@
-package com.auth.saga;
+package com.auth.saga.create;
 
 import com.auth.dto.ConnectionsRegisterDTO;
 import com.auth.dto.RegisterDTO;
@@ -8,9 +8,9 @@ import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.saga.workflow.Workflow;
 import com.auth.saga.workflow.WorkflowStep;
 import com.auth.saga.workflow.WorkflowStepStatus;
-import com.auth.saga.workflow.impl.AuthWorkflowStep;
-import com.auth.saga.workflow.impl.ConnectionsWorkflowStep;
-import com.auth.saga.workflow.impl.ProfileWorkflowStep;
+import com.auth.saga.create.workflow.AuthCreateWorkflowStep;
+import com.auth.saga.create.workflow.ConnectionsCreateWorkflowStep;
+import com.auth.saga.create.workflow.ProfileCreateWorkflowStep;
 import com.auth.service.RoleService;
 import com.auth.service.UserService;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OrchestratorService {
+public class CreateUserOrchestrator {
 
     private final UserService userService;
 
@@ -30,7 +30,7 @@ public class OrchestratorService {
 
     private final WebClient connectionsClient;
 
-    public OrchestratorService(UserService userService, RoleService roleService, WebClient profileClient, WebClient connectionsClient) {
+    public CreateUserOrchestrator(UserService userService, RoleService roleService, WebClient profileClient, WebClient connectionsClient) {
         this.userService = userService;
         this.roleService = roleService;
         this.profileClient = profileClient;
@@ -64,13 +64,13 @@ public class OrchestratorService {
 
         User user = new User(registerDTO.getUuid(), registerDTO.getUsername(), registerDTO.getPassword(), roleService.findByName("ROLE_USER"));
 
-        AuthWorkflowStep authWorkflowStep = new AuthWorkflowStep(user, userService);
+        AuthCreateWorkflowStep authWorkflowStep = new AuthCreateWorkflowStep(user, userService);
         workflowSteps.add(authWorkflowStep);
 
-        ProfileWorkflowStep profileWorkflowStep = new ProfileWorkflowStep(profileClient, registerDTO);
+        ProfileCreateWorkflowStep profileWorkflowStep = new ProfileCreateWorkflowStep(profileClient, registerDTO);
         workflowSteps.add(profileWorkflowStep);
 
-        ConnectionsWorkflowStep connectionsWorkflowStep = new ConnectionsWorkflowStep(connectionsClient, new ConnectionsRegisterDTO(registerDTO.getUuid(), registerDTO.getUsername()));
+        ConnectionsCreateWorkflowStep connectionsWorkflowStep = new ConnectionsCreateWorkflowStep(connectionsClient, new ConnectionsRegisterDTO(registerDTO.getUuid(), registerDTO.getUsername()));
         workflowSteps.add(connectionsWorkflowStep);
 
         return new Workflow(workflowSteps);

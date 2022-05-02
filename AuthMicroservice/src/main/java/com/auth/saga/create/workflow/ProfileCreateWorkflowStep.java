@@ -1,8 +1,7 @@
-package com.auth.saga.workflow.impl;
+package com.auth.saga.create.workflow;
 
-import com.auth.dto.ConnectionsRegisterDTO;
 import com.auth.dto.RegisterDTO;
-import com.auth.saga.dto.ProfileResponseDTO;
+import com.auth.saga.dto.ResponseDTO;
 import com.auth.saga.workflow.WorkflowStep;
 import com.auth.saga.workflow.WorkflowStepStatus;
 import org.springframework.http.HttpHeaders;
@@ -10,20 +9,19 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-public class ConnectionsWorkflowStep implements WorkflowStep {
+public class ProfileCreateWorkflowStep implements WorkflowStep {
 
     private final WebClient webClient;
-    private final ConnectionsRegisterDTO requestDTO;
+    private final RegisterDTO requestDTO;
     private WorkflowStepStatus stepStatus = WorkflowStepStatus.PENDING;
     private Mono<Boolean> request;
 
-    private final String uri = "/api/v1/users";
+    private final String uri = "api/v1/profiles";
 
-    public ConnectionsWorkflowStep(WebClient webClient, ConnectionsRegisterDTO requestDTO) {
+    public ProfileCreateWorkflowStep(WebClient webClient, RegisterDTO requestDTO) {
         this.webClient = webClient;
         this.requestDTO = requestDTO;
     }
-
 
     @Override
     public WorkflowStepStatus getStatus() {
@@ -39,8 +37,8 @@ public class ConnectionsWorkflowStep implements WorkflowStep {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .body(Mono.just(requestDTO), RegisterDTO.class)
                 .retrieve()
-                .bodyToMono(ProfileResponseDTO.class)
-                .map(ProfileResponseDTO::isSuccess)
+                .bodyToMono(ResponseDTO.class)
+                .map(ResponseDTO::isSuccess)
                 .doOnNext(b -> this.stepStatus = b ? WorkflowStepStatus.COMPLETE : WorkflowStepStatus.FAILED);
         return request;
     }
@@ -52,11 +50,12 @@ public class ConnectionsWorkflowStep implements WorkflowStep {
 
         return this.webClient
                 .delete()
-                .uri(uri + "/" + requestDTO.getId())
+                .uri(uri + "/" + requestDTO.getUuid())
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .retrieve()
-                .bodyToMono(ProfileResponseDTO.class)
-                .map(ProfileResponseDTO::isSuccess)
+                .bodyToMono(ResponseDTO.class)
+                .map(ResponseDTO::isSuccess)
                 .map(r -> true);
+
     }
 }

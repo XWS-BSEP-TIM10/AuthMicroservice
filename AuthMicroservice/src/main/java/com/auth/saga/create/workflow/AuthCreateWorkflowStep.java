@@ -1,4 +1,4 @@
-package com.auth.saga.workflow.impl;
+package com.auth.saga.create.workflow;
 
 import com.auth.model.User;
 import com.auth.saga.workflow.WorkflowStep;
@@ -6,13 +6,13 @@ import com.auth.saga.workflow.WorkflowStepStatus;
 import com.auth.service.UserService;
 import reactor.core.publisher.Mono;
 
-public class AuthWorkflowStep implements WorkflowStep {
+public class AuthCreateWorkflowStep implements WorkflowStep {
 
     private final User user;
     private final UserService userService;
     private WorkflowStepStatus status = WorkflowStepStatus.PENDING;
 
-    public AuthWorkflowStep(User user, UserService userService) {
+    public AuthCreateWorkflowStep(User user, UserService userService) {
         this.user = user;
         this.userService = userService;
     }

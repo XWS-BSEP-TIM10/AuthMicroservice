@@ -4,7 +4,7 @@ import com.auth.dto.NewUserDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.dto.TokenDTO;
 import com.auth.model.User;
-import com.auth.saga.OrchestratorService;
+import com.auth.saga.create.CreateUserOrchestrator;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.security.util.TokenUtils;
 import com.auth.service.AuthenticationService;
@@ -53,7 +53,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public Mono<OrchestratorResponseDTO> signUp(NewUserDTO newUserDTO) {
         RegisterDTO registerDTO = new RegisterDTO(UUID.randomUUID().toString(), newUserDTO);
-        OrchestratorService orchestrator = new OrchestratorService(userService, roleService, getProfileWebClient(), getConnectionsWebClient());
+        CreateUserOrchestrator orchestrator = new CreateUserOrchestrator(userService, roleService, getProfileWebClient(), getConnectionsWebClient());
         return orchestrator.registerUser(registerDTO);
     }
 

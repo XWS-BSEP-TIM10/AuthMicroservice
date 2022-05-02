@@ -1,19 +1,13 @@
 package com.auth.controller;
 
-import com.auth.dto.LoginDTO;
-import com.auth.dto.NewUserDTO;
-import com.auth.dto.RegisterDTO;
-import com.auth.dto.TokenDTO;
+import com.auth.dto.*;
 import com.auth.exception.UserAlreadyExistsException;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 

@@ -1,7 +1,7 @@
 package com.auth.service.impl;
 
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -29,7 +29,8 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public User findByUsername(String username) throws UsernameNotFoundException {
-		return userRepository.findByUsername(username);
+		Optional<User> user = userRepository.findByUsername(username);
+		return user.orElse(null);
 	}
 
 	@Override
@@ -43,8 +44,8 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public boolean userExists(String username) {
-		User user =  userRepository.findByUsername(username);
-		return user != null;
+		Optional<User> user =  userRepository.findByUsername(username);
+		return user.isPresent();
 	}
 
 	@Override
@@ -55,6 +56,15 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void delete(User user) {
 		userRepository.delete(user);
+	}
+
+	@Override
+	public User update(String username) {
+		User user = findByUsername(username);
+		if(user == null)
+			return null;
+		user.setUsername(username);
+		return userRepository.save(user);
 	}
 
 
