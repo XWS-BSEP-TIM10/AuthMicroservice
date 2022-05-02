@@ -11,6 +11,7 @@ import com.auth.saga.workflow.WorkflowStepStatus;
 import com.auth.saga.workflow.impl.AuthWorkflowStep;
 import com.auth.saga.workflow.impl.ConnectionsWorkflowStep;
 import com.auth.saga.workflow.impl.ProfileWorkflowStep;
+import com.auth.service.RoleService;
 import com.auth.service.UserService;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -23,12 +24,15 @@ public class OrchestratorService {
 
     private final UserService userService;
 
+    private final RoleService roleService;
+
     private final WebClient profileClient;
 
     private final WebClient connectionsClient;
 
-    public OrchestratorService(UserService userService, WebClient profileClient, WebClient connectionsClient) {
+    public OrchestratorService(UserService userService, RoleService roleService, WebClient profileClient, WebClient connectionsClient) {
         this.userService = userService;
+        this.roleService = roleService;
         this.profileClient = profileClient;
         this.connectionsClient = connectionsClient;
     }
@@ -58,7 +62,7 @@ public class OrchestratorService {
     private Workflow getRegisterUserWorkflow(RegisterDTO registerDTO) {
         List<WorkflowStep> workflowSteps = new ArrayList<>();
 
-        User user = new User(registerDTO.getUuid(), registerDTO.getUsername(), registerDTO.getPassword(), null);
+        User user = new User(registerDTO.getUuid(), registerDTO.getUsername(), registerDTO.getPassword(), roleService.findByName("ROLE_USER"));
 
         AuthWorkflowStep authWorkflowStep = new AuthWorkflowStep(user, userService);
         workflowSteps.add(authWorkflowStep);
