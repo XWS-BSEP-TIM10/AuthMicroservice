@@ -7,7 +7,7 @@ import java.util.UUID;
 import com.auth.model.User;
 
 public interface UserService {
-    User findById(Long id);
+    User findById(String id);
     User findByUsername(String username);
     List<User> findAll ();
     boolean userExists(String username);

@@ -32,7 +32,8 @@ public class UserServiceImpl implements UserService {
 		return userRepository.findByUsername(username);
 	}
 
-	public User findById(Long id) throws AccessDeniedException {
+	@Override
+	public User findById(String id) throws AccessDeniedException {
 		return userRepository.findById(id).orElseGet(null);
 	}
 
