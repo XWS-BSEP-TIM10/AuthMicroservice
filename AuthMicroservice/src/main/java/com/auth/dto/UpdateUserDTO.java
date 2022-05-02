@@ -2,9 +2,15 @@ package com.auth.dto;
 
 public class UpdateUserDTO {
 
+    private String id;
+
     private String username;
 
     public UpdateUserDTO() {
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getUsername() {

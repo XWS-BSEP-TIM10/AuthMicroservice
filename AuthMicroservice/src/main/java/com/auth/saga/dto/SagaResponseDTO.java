@@ -1,15 +1,15 @@
 package com.auth.saga.dto;
 
-public class ResponseDTO {
+public class SagaResponseDTO {
 
     private String id;
     private boolean success;
     private String message;
 
-    public ResponseDTO() {
+    public SagaResponseDTO() {
     }
 
-    public ResponseDTO(String id, boolean success, String message) {
+    public SagaResponseDTO(String id, boolean success, String message) {
         this.id = id;
         this.success = success;
         this.message = message;

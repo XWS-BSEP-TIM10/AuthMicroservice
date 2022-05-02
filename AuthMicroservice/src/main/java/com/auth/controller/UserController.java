@@ -28,7 +28,7 @@ public class UserController {
 
     @PutMapping
     public ResponseEntity<ResponseDTO> update(@RequestBody UpdateUserDTO updateUserDTO) {
-        User updatedUser = userService.update(updateUserDTO.getUsername());
+        User updatedUser = userService.update(updateUserDTO.getId(), updateUserDTO.getUsername());
         if (updatedUser == null)
             return new ResponseEntity<>(new ResponseDTO(false, "update failed!"), HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(new ResponseDTO(true, "success!"), HttpStatus.OK);

@@ -1,7 +1,7 @@
 package com.auth.saga.create.workflow;
 
 import com.auth.dto.RegisterDTO;
-import com.auth.saga.dto.ResponseDTO;
+import com.auth.saga.dto.SagaResponseDTO;
 import com.auth.saga.workflow.WorkflowStep;
 import com.auth.saga.workflow.WorkflowStepStatus;
 import org.springframework.http.HttpHeaders;
@@ -37,8 +37,8 @@ public class ProfileCreateWorkflowStep implements WorkflowStep {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .body(Mono.just(requestDTO), RegisterDTO.class)
                 .retrieve()
-                .bodyToMono(ResponseDTO.class)
-                .map(ResponseDTO::isSuccess)
+                .bodyToMono(SagaResponseDTO.class)
+                .map(SagaResponseDTO::isSuccess)
                 .doOnNext(b -> this.stepStatus = b ? WorkflowStepStatus.COMPLETE : WorkflowStepStatus.FAILED);
         return request;
     }
@@ -53,8 +53,8 @@ public class ProfileCreateWorkflowStep implements WorkflowStep {
                 .uri(uri + "/" + requestDTO.getUuid())
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .retrieve()
-                .bodyToMono(ResponseDTO.class)
-                .map(ResponseDTO::isSuccess)
+                .bodyToMono(SagaResponseDTO.class)
+                .map(SagaResponseDTO::isSuccess)
                 .map(r -> true);
 
     }
