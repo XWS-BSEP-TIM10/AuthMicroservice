@@ -4,10 +4,11 @@ import com.auth.dto.NewUserDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.dto.TokenDTO;
 import com.auth.model.User;
-import com.auth.saga.OrchestratorService;
+import com.auth.saga.create.CreateUserOrchestrator;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.security.util.TokenUtils;
 import com.auth.service.AuthenticationService;
+import com.auth.service.RoleService;
 import com.auth.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -29,12 +30,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final TokenUtils tokenUtils;
     private final UserService userService;
+    private final RoleService roleService;
 
     @Autowired
-    public AuthenticationServiceImpl(AuthenticationManager authenticationManager, TokenUtils tokenUtils, UserService userService) {
+    public AuthenticationServiceImpl(AuthenticationManager authenticationManager, TokenUtils tokenUtils, UserService userService, RoleService roleService) {
         this.authenticationManager = authenticationManager;
         this.tokenUtils = tokenUtils;
         this.userService = userService;
+        this.roleService = roleService;
     }
 
     @Override
@@ -50,7 +53,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public Mono<OrchestratorResponseDTO> signUp(NewUserDTO newUserDTO) {
         RegisterDTO registerDTO = new RegisterDTO(UUID.randomUUID().toString(), newUserDTO);
-        OrchestratorService orchestrator = new OrchestratorService(userService, getProfileWebClient(), getConnectionsWebClient());
+        CreateUserOrchestrator orchestrator = new CreateUserOrchestrator(userService, roleService, getProfileWebClient(), getConnectionsWebClient());
         return orchestrator.registerUser(registerDTO);
     }
 

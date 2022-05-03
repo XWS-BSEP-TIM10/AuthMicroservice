@@ -1,16 +1,12 @@
 package com.auth.dto;
 
-public class ConnectionsRegisterDTO {
+public class UpdateUserDTO {
 
     private String id;
 
     private String username;
 
-    public ConnectionsRegisterDTO() {}
-
-    public ConnectionsRegisterDTO(String id, String username) {
-        this.id = id;
-        this.username = username;
+    public UpdateUserDTO() {
     }
 
     public String getId() {
@@ -19,5 +15,9 @@ public class ConnectionsRegisterDTO {
 
     public String getUsername() {
         return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }
