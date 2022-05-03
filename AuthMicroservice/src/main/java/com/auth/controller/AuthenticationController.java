@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.lang.reflect.Executable;
 
 @RestController
 @RequestMapping(value = "/api/v1/auth")
@@ -42,7 +43,12 @@ public class AuthenticationController {
 
     @PostMapping(value = "/login")
     public ResponseEntity<TokenDTO> login(@RequestBody @Valid LoginDTO loginDTO) {
-        TokenDTO tokenDTO = authenticationService.login(loginDTO.getUsername(), loginDTO.getPassword());
+        TokenDTO tokenDTO = null;
+        try {
+            tokenDTO = authenticationService.login(loginDTO.getUsername(), loginDTO.getPassword());
+        }catch(Exception ex){
+            return ResponseEntity.badRequest().build();
+        }
         return ResponseEntity.ok(tokenDTO);
     }
 
