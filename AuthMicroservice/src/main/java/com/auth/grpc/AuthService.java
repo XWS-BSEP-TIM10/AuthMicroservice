@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import proto.*;
 
 @GrpcService
-public class AuthService extends ConnectionsGrpcServiceGrpc.ConnectionsGrpcServiceImplBase {
+public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
 
     private final AuthenticationService authenticationService;
 
