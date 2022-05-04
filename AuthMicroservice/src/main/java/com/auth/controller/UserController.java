@@ -2,9 +2,7 @@ package com.auth.controller;
 
 import com.auth.dto.ResponseDTO;
 import com.auth.dto.UpdateUserDTO;
-import com.auth.exception.UserAlreadyExistsException;
 import com.auth.model.User;
-import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,8 +10,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "api/v1/users")

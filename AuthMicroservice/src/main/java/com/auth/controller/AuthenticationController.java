@@ -37,13 +37,12 @@ public class AuthenticationController {
 
     @PostMapping(value = "/login")
     public ResponseEntity<TokenDTO> login(@RequestBody @Valid LoginDTO loginDTO) {
-        TokenDTO tokenDTO = null;
         try {
-            tokenDTO = authenticationService.login(loginDTO.getUsername(), loginDTO.getPassword());
+            TokenDTO tokenDTO = authenticationService.login(loginDTO.getUsername(), loginDTO.getPassword());
+            return ResponseEntity.ok(tokenDTO);
         }catch(Exception ex){
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(tokenDTO);
     }
 
 }
