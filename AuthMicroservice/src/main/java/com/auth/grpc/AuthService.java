@@ -48,9 +48,9 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         LoginResponseProto responseProto;
         try {
             TokenDTO tokenDTO = authenticationService.login(request.getUsername(), request.getPassword());
-            responseProto = LoginResponseProto.newBuilder().setJwt(tokenDTO.getJwt()).setRole(tokenDTO.getRole()).setStatus("Status 200").build();
+            responseProto = LoginResponseProto.newBuilder().setJwt(tokenDTO.getJwt()).setStatus("Status 200").build();
         }catch(Exception ex){
-            responseProto = LoginResponseProto.newBuilder().setJwt("").setRole("").setStatus("Status 400").build();
+            responseProto = LoginResponseProto.newBuilder().setJwt("").setStatus("Status 400").build();
         }
 
         responseObserver.onNext(responseProto);

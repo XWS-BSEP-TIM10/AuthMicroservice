@@ -27,7 +27,6 @@ message LoginProto {
 
 message  LoginResponseProto {
   string jwt = 1;
-  string role = 2;
   string status = 3;
 }
 
