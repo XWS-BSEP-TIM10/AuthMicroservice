@@ -1,18 +1,16 @@
 package com.auth.saga.create;
 
-import com.auth.dto.ConnectionsRegisterDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.exception.WorkflowException;
 import com.auth.model.User;
+import com.auth.saga.create.workflow.AuthCreateWorkflowStep;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.saga.workflow.Workflow;
 import com.auth.saga.workflow.WorkflowStep;
 import com.auth.saga.workflow.WorkflowStepStatus;
-import com.auth.saga.create.workflow.AuthCreateWorkflowStep;
-import com.auth.saga.create.workflow.ConnectionsCreateWorkflowStep;
-import com.auth.saga.create.workflow.ProfileCreateWorkflowStep;
 import com.auth.service.RoleService;
 import com.auth.service.UserService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -30,11 +28,14 @@ public class CreateUserOrchestrator {
 
     private final WebClient connectionsClient;
 
-    public CreateUserOrchestrator(UserService userService, RoleService roleService, WebClient profileClient, WebClient connectionsClient) {
+    private final PasswordEncoder passwordEncoder;
+
+    public CreateUserOrchestrator(UserService userService, RoleService roleService, WebClient profileClient, WebClient connectionsClient, PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.roleService = roleService;
         this.profileClient = profileClient;
         this.connectionsClient = connectionsClient;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public Mono<OrchestratorResponseDTO> registerUser(final RegisterDTO requestDTO) {
@@ -64,14 +65,14 @@ public class CreateUserOrchestrator {
 
         User user = new User(registerDTO.getUuid(), registerDTO.getUsername(), registerDTO.getPassword(), roleService.findByName("ROLE_USER"));
 
-        AuthCreateWorkflowStep authWorkflowStep = new AuthCreateWorkflowStep(user, userService);
+        AuthCreateWorkflowStep authWorkflowStep = new AuthCreateWorkflowStep(user, userService, passwordEncoder);
         workflowSteps.add(authWorkflowStep);
-
-        ProfileCreateWorkflowStep profileWorkflowStep = new ProfileCreateWorkflowStep(profileClient, registerDTO);
-        workflowSteps.add(profileWorkflowStep);
-
-        ConnectionsCreateWorkflowStep connectionsWorkflowStep = new ConnectionsCreateWorkflowStep(connectionsClient, new ConnectionsRegisterDTO(registerDTO.getUuid(), registerDTO.getUsername()));
-        workflowSteps.add(connectionsWorkflowStep);
+//
+//        ProfileCreateWorkflowStep profileWorkflowStep = new ProfileCreateWorkflowStep(profileClient, registerDTO);
+//        workflowSteps.add(profileWorkflowStep);
+//
+//        ConnectionsCreateWorkflowStep connectionsWorkflowStep = new ConnectionsCreateWorkflowStep(connectionsClient, new ConnectionsRegisterDTO(registerDTO.getUuid(), registerDTO.getUsername()));
+//        workflowSteps.add(connectionsWorkflowStep);
 
         return new Workflow(workflowSteps);
     }

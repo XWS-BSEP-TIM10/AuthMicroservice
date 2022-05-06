@@ -16,6 +16,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -31,14 +32,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final TokenUtils tokenUtils;
     private final UserService userService;
     private final RoleService roleService;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public AuthenticationServiceImpl(AuthenticationManager authenticationManager, TokenUtils tokenUtils, UserService userService, RoleService roleService) {
+    public AuthenticationServiceImpl(AuthenticationManager authenticationManager, TokenUtils tokenUtils, UserService userService, RoleService roleService, PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.tokenUtils = tokenUtils;
         this.userService = userService;
         this.roleService = roleService;
+        this.passwordEncoder = passwordEncoder;
     }
+
 
     @Override
     public TokenDTO login(String username, String password) {
@@ -53,7 +57,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public Mono<OrchestratorResponseDTO> signUp(NewUserDTO newUserDTO) {
         RegisterDTO registerDTO = new RegisterDTO(UUID.randomUUID().toString(), newUserDTO);
-        CreateUserOrchestrator orchestrator = new CreateUserOrchestrator(userService, roleService, getProfileWebClient(), getConnectionsWebClient());
+        CreateUserOrchestrator orchestrator = new CreateUserOrchestrator(userService, roleService, getProfileWebClient(), getConnectionsWebClient(), passwordEncoder);
         return orchestrator.registerUser(registerDTO);
     }
 
