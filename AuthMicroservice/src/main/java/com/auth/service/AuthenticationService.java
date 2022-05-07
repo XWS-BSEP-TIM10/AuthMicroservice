@@ -7,6 +7,7 @@ import com.auth.saga.dto.OrchestratorResponseDTO;
 import reactor.core.publisher.Mono;
 
 public interface AuthenticationService {
+
     TokenDTO login(String username, String password);
 
     Mono<OrchestratorResponseDTO> signUp(NewUserDTO newUserDTO) throws UserAlreadyExistsException;

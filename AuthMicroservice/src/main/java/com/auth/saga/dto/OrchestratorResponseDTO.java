@@ -2,7 +2,7 @@ package com.auth.saga.dto;
 
 public class OrchestratorResponseDTO {
 
-    private String username;
+    private String id;
 
     private Boolean success;
 
@@ -12,17 +12,17 @@ public class OrchestratorResponseDTO {
     }
 
     public OrchestratorResponseDTO(String username, Boolean success, String message) {
-        this.username = username;
+        this.id = username;
         this.success = success;
         this.message = message;
     }
 
-    public String getUsername() {
-        return username;
+    public String getId() {
+        return id;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public Boolean getSuccess() {

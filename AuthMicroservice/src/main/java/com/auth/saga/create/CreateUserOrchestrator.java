@@ -81,6 +81,6 @@ public class CreateUserOrchestrator {
     }
 
     private OrchestratorResponseDTO getResponseDTO(RegisterDTO registerDTO, boolean success, String message) {
-        return new OrchestratorResponseDTO(registerDTO.getUsername(), success, message);
+        return new OrchestratorResponseDTO(registerDTO.getUuid(), success, message);
     }
 }

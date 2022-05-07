@@ -32,11 +32,11 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
             OrchestratorResponseDTO response = authenticationService.signUp(newUserDTO).block();
 
             if (!response.getSuccess())
-                responseProto = NewUserResponseProto.newBuilder().setUsername(response.getUsername()).setStatus("Status 400").build();
+                responseProto = NewUserResponseProto.newBuilder().setId(response.getId()).setStatus("Status 500").build();
             else
-                responseProto =NewUserResponseProto.newBuilder().setUsername(response.getUsername()).setStatus("Status 200").build();
+                responseProto =NewUserResponseProto.newBuilder().setId(response.getId()).setStatus("Status 200").build();
         } catch (UserAlreadyExistsException e) {
-            responseProto = NewUserResponseProto.newBuilder().setUsername("").setStatus("Status 400").build();
+            responseProto = NewUserResponseProto.newBuilder().setId("").setStatus("Status 400").build();
         }
 
         responseObserver.onNext(responseProto);

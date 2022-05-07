@@ -28,9 +28,6 @@ public class AuthCreateWorkflowStep implements WorkflowStep {
     @Override
     public Mono<Boolean> process() {
         status = WorkflowStepStatus.START;
-        if (userService.userExists(user.getUsername())) {
-            return Mono.just(false);
-        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userService.save(user);
         this.status = WorkflowStepStatus.COMPLETE;
