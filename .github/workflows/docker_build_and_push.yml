@@ -1,0 +1,31 @@
+name: Build & Push Docker image
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_DIR: AuthMicroservice
+  IMAGE_NAME: auth-microservice
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+            username: ${{ secrets.DOCKER_USERNAME }}
+            password: ${{ secrets.DOCKER_TOKEN }}
+      - uses: mr-smithers-excellent/docker-build-push@v5
+        name: Build & push Docker image
+        with:
+          dockerfile: ${{env.PROJECT_DIR}}/Dockerfile
+          directory: ${{env.PROJECT_DIR}}
+          image: ${{ secrets.DOCKER_USERNAME }}/${{env.IMAGE_NAME}}
+          tags: latest
+          registry: docker.io
+          username: ${{secrets.DOCKER_USERNAME}}
+          password: ${{secrets.DOCKER_PASSWORD}}

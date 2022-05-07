@@ -3,6 +3,7 @@ package com.auth.dto;
 import javax.validation.constraints.NotBlank;
 
 public class LoginDTO {
+
     @NotBlank
     private String username;
     @NotBlank

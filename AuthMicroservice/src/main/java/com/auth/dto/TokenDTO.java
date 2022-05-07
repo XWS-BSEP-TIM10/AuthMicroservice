@@ -3,15 +3,9 @@ package com.auth.dto;
 
 public class TokenDTO {
     private String jwt;
-    private String role;
 
-    public TokenDTO(String jwt, String role) {
+    public TokenDTO(String jwt) {
         this.jwt = jwt;
-        this.role = role;
-    }
-
-    public String getRole() {
-        return role;
     }
 
     public String getJwt() {

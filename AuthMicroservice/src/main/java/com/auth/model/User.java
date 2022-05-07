@@ -3,15 +3,7 @@ package com.auth.model;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -21,10 +13,7 @@ public class User implements UserDetails {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @SequenceGenerator(name = "mySeqGenUsers", sequenceName = "mySeqUsers", initialValue = 1, allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "mySeqGenUsers")
-    @Column(name = "id", unique = true, nullable = false)
-    private Long id;
+    private String id;
 
     @Column(name = "username", unique = true, nullable = false)
     private String username;
@@ -40,28 +29,27 @@ public class User implements UserDetails {
     }
 
 
-    public User(Long id, String username, String password, Role userType) {
+    public User(String uuid, String username, String password, Role userType) {
         super();
-        this.id = id;
+        this.id = uuid;
         this.username = username;
         this.password = password;
         this.role = userType;
     }
 
-
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public String getusername() {
+    public String getUsername() {
         return username;
     }
 
-    public void setusername(String username) {
+    public void setUsername(String username) {
         this.username = username;
     }
 
@@ -75,11 +63,6 @@ public class User implements UserDetails {
 
     public Role getRole() {
         return role;
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
     }
 
     @Override
