@@ -71,11 +71,11 @@ public class CreateUserOrchestrator {
         AuthCreateWorkflowStep authWorkflowStep = new AuthCreateWorkflowStep(user, userService, passwordEncoder);
         workflowSteps.add(authWorkflowStep);
 
-        ProfileCreateWorkflowStep profileWorkflowStep = new ProfileCreateWorkflowStep(profileClient, registerDTO);
+     /*   ProfileCreateWorkflowStep profileWorkflowStep = new ProfileCreateWorkflowStep(profileClient, registerDTO);
         workflowSteps.add(profileWorkflowStep);
 
         ConnectionsCreateWorkflowStep connectionsWorkflowStep = new ConnectionsCreateWorkflowStep(connectionsClient, new ConnectionsRegisterDTO(registerDTO.getUuid(), registerDTO.getUsername()));
-        workflowSteps.add(connectionsWorkflowStep);
+        workflowSteps.add(connectionsWorkflowStep);*/
 
         return new Workflow(workflowSteps);
     }

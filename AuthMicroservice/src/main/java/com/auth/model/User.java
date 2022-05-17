@@ -91,4 +91,11 @@ public class User implements UserDetails {
         roles.add(role);
         return roles;
     }
+
+
+	public void setRole(Role role) {
+		this.role = role;
+	}
+    
+    
 }
