@@ -1,5 +1,6 @@
 package com.auth.grpc;
 
+import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.auth.dto.NewUserDTO;
@@ -16,6 +17,7 @@ import proto.UserDetailsGrpcServiceGrpc;
 import proto.UserDetailsProto;
 import proto.UserDetailsResponseProto;
 
+@GrpcService
 public class UserDetailsService extends UserDetailsGrpcServiceGrpc.UserDetailsGrpcServiceImplBase{
 
 	private final CustomUserDetailsService customUserDetailsService;
