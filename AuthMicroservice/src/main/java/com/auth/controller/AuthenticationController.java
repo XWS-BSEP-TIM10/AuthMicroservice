@@ -4,8 +4,11 @@ import com.auth.dto.LoginDTO;
 import com.auth.dto.NewUserDTO;
 import com.auth.dto.TokenDTO;
 import com.auth.exception.UserAlreadyExistsException;
+import com.auth.model.User;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.service.AuthenticationService;
+import com.auth.service.impl.CustomUserDetailsService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +24,13 @@ import javax.validation.Valid;
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
+    
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Autowired
-    public AuthenticationController(AuthenticationService authenticationService) {
+    public AuthenticationController(AuthenticationService authenticationService, CustomUserDetailsService customUserDetailsService) {
         this.authenticationService = authenticationService;
+        this.customUserDetailsService = customUserDetailsService;
     }
 
     @PostMapping("/signup")

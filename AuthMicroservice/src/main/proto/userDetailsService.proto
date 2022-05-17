@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+package proto;
+import "userDetailsModel.proto";
+
+service UserDetailsGrpcService{
+  rpc getUserDetails (UserDetailsProto) returns (UserDetailsResponseProto);
+}

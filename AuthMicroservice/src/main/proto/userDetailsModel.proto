@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+package proto;
+
+message UserDetailsProto{
+    string username = 1;
+}
+
+message UserDetailsResponseProto{
+	 string id = 1;
+     string username = 2;
+     string password = 3;
+     RoleProto role = 4;
+     string status = 5;
+}
+
+message RoleProto{
+	 int64 id = 1;
+	 string name = 2;
+	 repeated PermissionProto permissions = 3;
+}
+
+message PermissionProto{
+	 int64 id = 1;
+	 string name = 2;
+}
