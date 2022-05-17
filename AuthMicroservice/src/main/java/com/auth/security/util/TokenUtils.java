@@ -58,6 +58,7 @@ public class TokenUtils {
                 .setIssuer(APP_NAME)
                 .setSubject(username)
                 .claim("role", role)
+                .claim("userId", id)
                 .setAudience(generateAudience())
                 .setIssuedAt(new Date())
                 .setExpiration(generateExpirationDate())
