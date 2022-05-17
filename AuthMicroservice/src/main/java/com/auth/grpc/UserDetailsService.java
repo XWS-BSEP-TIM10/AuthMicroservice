@@ -37,7 +37,7 @@ public class UserDetailsService extends UserDetailsGrpcServiceGrpc.UserDetailsGr
     public void getUserDetails(UserDetailsProto request, StreamObserver<UserDetailsResponseProto> responseObserver){
 		UserDetailsResponseProto responseProto;
         
-		User userTemp = (User) customUserDetailsService.loadUserByUsername(request.getUsername());
+		User userTemp = (User) customUserDetailsService.loadUserById(request.getUsername());
 		List<PermissionProto> permissionsProtos = new ArrayList<PermissionProto>();
 		for(Permission perm: userTemp.getRole().getPermission()) {
 			permissionsProtos.add(PermissionProto.newBuilder().setId(perm.getId()).setName(perm.getName()).build());

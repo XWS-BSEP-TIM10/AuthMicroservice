@@ -29,5 +29,14 @@ public class CustomUserDetailsService implements UserDetailsService {
 			return user.get();
 		}
 	}
+	
+	public UserDetails loadUserById(String username) throws UsernameNotFoundException {
+		Optional<User> user = userRepository.findById(username);
+		if (!user.isPresent()) {
+			throw new UsernameNotFoundException(String.format("No user found with username '%s'.", username));
+		} else {
+			return user.get();
+		}
+	}
 
 }
