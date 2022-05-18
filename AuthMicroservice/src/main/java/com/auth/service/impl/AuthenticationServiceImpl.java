@@ -3,6 +3,8 @@ package com.auth.service.impl;
 import com.auth.dto.NewUserDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.dto.TokenDTO;
+import com.auth.exception.PasswordsNotMatchingException;
+import com.auth.exception.RepeatedPasswordNotMatchingException;
 import com.auth.exception.UserAlreadyExistsException;
 import com.auth.model.User;
 import com.auth.model.VerificationToken;
@@ -60,7 +62,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Transactional
     @Override
-    public Mono<OrchestratorResponseDTO> signUp(NewUserDTO newUserDTO) throws UserAlreadyExistsException {
+    public OrchestratorResponseDTO signUp(NewUserDTO newUserDTO) throws UserAlreadyExistsException {
         if(userService.userExists(newUserDTO.getUsername()))
             throw new UserAlreadyExistsException();
 
@@ -68,7 +70,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
 
         CreateUserOrchestrator orchestrator = new CreateUserOrchestrator(userService, roleService, getProfileWebClient(), getConnectionsWebClient(), passwordEncoder);
-        Mono<OrchestratorResponseDTO> response = orchestrator.registerUser(registerDTO);
+        OrchestratorResponseDTO response = orchestrator.registerUser(registerDTO).block();
 
         VerificationToken verificationToken = saveVerificationToken(registerDTO, response);
         emailService.sendEmail(registerDTO.getEmail(), verificationToken.getToken());
@@ -76,8 +78,23 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return response;
     }
 
-    private VerificationToken saveVerificationToken(RegisterDTO registerDTO, Mono<OrchestratorResponseDTO> response) {
-        if(response.block().getSuccess()){
+    @Override
+    public void changePassword(String userId, String oldPassword, String newPassword, String repeatedNewPassword) throws PasswordsNotMatchingException, RepeatedPasswordNotMatchingException {
+
+        User user = userService.findById(userId);
+        if(!passwordEncoder.matches(oldPassword, user.getPassword())){
+            throw new PasswordsNotMatchingException();
+        }
+        if(!newPassword.equals(repeatedNewPassword)){
+            throw new RepeatedPasswordNotMatchingException();
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userService.save(user);
+
+    }
+
+    private VerificationToken saveVerificationToken(RegisterDTO registerDTO, OrchestratorResponseDTO response) {
+        if(response.getSuccess()){
             User user = new User(registerDTO.getUuid(), registerDTO.getUsername(), registerDTO.getPassword(), roleService.findByName("ROLE_USER"));
             VerificationToken verificationToken = new VerificationToken(user);
             verificationTokenService.saveVerificationToken(verificationToken);
@@ -114,7 +131,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public String verifyUserAccount(String token) {
 
         VerificationToken verificationToken = verificationTokenService.findVerificationTokenByToken(token);
-        User user = userService.findByUsername(verificationToken.getUser().getUsername());;
+        User user = userService.findByUsername(verificationToken.getUser().getUsername());
 
         if(getDifferenceInMinutes(verificationToken) < 60) {
             user.setActivated(true);

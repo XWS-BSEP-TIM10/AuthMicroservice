@@ -27,7 +27,8 @@ INSERT INTO permission(id, name)
 VALUES (9, 'GET_POST_PERMISSION');
 INSERT INTO permission(id, name)
 VALUES (10, 'GET_FEED_PERMISSION');
-
+INSERT INTO permission(id, name)
+VALUES (11, 'CHANGE_PASSWORD_PERMISSION');
 
 INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 1);
@@ -49,3 +50,5 @@ INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 9);
 INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 10);
+INSERT INTO roles_permissions(role_id, permission_id)
+VALUES (1, 11);

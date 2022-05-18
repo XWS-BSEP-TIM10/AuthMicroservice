@@ -5,6 +5,7 @@ import com.auth.dto.NewUserDTO;
 import com.auth.dto.TokenDTO;
 import com.auth.exception.UserAlreadyExistsException;
 import com.auth.model.User;
+import com.auth.model.VerificationToken;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.service.AuthenticationService;
 import com.auth.service.EmailService;
@@ -40,7 +41,7 @@ public class AuthenticationController {
     @PostMapping("/signup")
     public ResponseEntity<NewUserDTO> addUser(@RequestBody NewUserDTO newUserDTO) {
         try {
-            OrchestratorResponseDTO response = authenticationService.signUp(newUserDTO).block();
+            OrchestratorResponseDTO response = authenticationService.signUp(newUserDTO);
             if (!response.getSuccess()) {
                 return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
             }
