@@ -3,14 +3,15 @@ package com.auth.service.impl;
 import com.auth.dto.NewUserDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.dto.TokenDTO;
+import com.auth.exception.PasswordsNotMatchingException;
+import com.auth.exception.RepeatedPasswordNotMatchingException;
 import com.auth.exception.UserAlreadyExistsException;
 import com.auth.model.User;
+import com.auth.model.VerificationToken;
 import com.auth.saga.create.CreateUserOrchestrator;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.security.util.TokenUtils;
-import com.auth.service.AuthenticationService;
-import com.auth.service.RoleService;
-import com.auth.service.UserService;
+import com.auth.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,6 +25,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
+import java.util.Date;
 import java.util.UUID;
 
 @Service
@@ -34,14 +36,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserService userService;
     private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
+    private final VerificationTokenService verificationTokenService;
+    private final EmailService emailService;
 
     @Autowired
-    public AuthenticationServiceImpl(AuthenticationManager authenticationManager, TokenUtils tokenUtils, UserService userService, RoleService roleService, PasswordEncoder passwordEncoder) {
+    public AuthenticationServiceImpl(AuthenticationManager authenticationManager, TokenUtils tokenUtils, UserService userService, RoleService roleService, PasswordEncoder passwordEncoder, VerificationTokenService verificationTokenService, EmailService emailService) {
         this.authenticationManager = authenticationManager;
         this.tokenUtils = tokenUtils;
         this.userService = userService;
         this.roleService = roleService;
         this.passwordEncoder = passwordEncoder;
+        this.verificationTokenService = verificationTokenService;
+        this.emailService = emailService;
     }
 
 
@@ -56,12 +62,45 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Transactional
     @Override
-    public Mono<OrchestratorResponseDTO> signUp(NewUserDTO newUserDTO) throws UserAlreadyExistsException {
+    public OrchestratorResponseDTO signUp(NewUserDTO newUserDTO) throws UserAlreadyExistsException {
         if(userService.userExists(newUserDTO.getUsername()))
             throw new UserAlreadyExistsException();
+
         RegisterDTO registerDTO = new RegisterDTO(UUID.randomUUID().toString(), newUserDTO);
+
+
         CreateUserOrchestrator orchestrator = new CreateUserOrchestrator(userService, roleService, getProfileWebClient(), getConnectionsWebClient(), passwordEncoder);
-        return orchestrator.registerUser(registerDTO);
+        OrchestratorResponseDTO response = orchestrator.registerUser(registerDTO).block();
+
+        VerificationToken verificationToken = saveVerificationToken(registerDTO, response);
+        emailService.sendEmail(registerDTO.getEmail(), verificationToken.getToken());
+
+        return response;
+    }
+
+    @Override
+    public void changePassword(String userId, String oldPassword, String newPassword, String repeatedNewPassword) throws PasswordsNotMatchingException, RepeatedPasswordNotMatchingException {
+
+        User user = userService.findById(userId);
+        if(!passwordEncoder.matches(oldPassword, user.getPassword())){
+            throw new PasswordsNotMatchingException();
+        }
+        if(!newPassword.equals(repeatedNewPassword)){
+            throw new RepeatedPasswordNotMatchingException();
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userService.save(user);
+
+    }
+
+    private VerificationToken saveVerificationToken(RegisterDTO registerDTO, OrchestratorResponseDTO response) {
+        if(response.getSuccess()){
+            User user = new User(registerDTO.getUuid(), registerDTO.getUsername(), registerDTO.getPassword(), roleService.findByName("ROLE_USER"));
+            VerificationToken verificationToken = new VerificationToken(user);
+            verificationTokenService.saveVerificationToken(verificationToken);
+            return verificationToken;
+        }
+        return null;
     }
 
     private WebClient getProfileWebClient() {
@@ -86,5 +125,27 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private String getToken(User user) {
         return tokenUtils.generateToken(user.getRole().getName(), user.getId());
+    }
+
+    @Override
+    public String verifyUserAccount(String token) {
+
+        VerificationToken verificationToken = verificationTokenService.findVerificationTokenByToken(token);
+        User user = userService.findByUsername(verificationToken.getUser().getUsername());
+
+        if(getDifferenceInMinutes(verificationToken) < 60) {
+            user.setActivated(true);
+            userService.save(user);
+            return user.getUsername();
+        }else {
+            verificationTokenService.delete(verificationToken);
+            return null;
+        }
+    }
+
+    private long getDifferenceInMinutes(VerificationToken verificationToken) {
+        long differenceInTime = (new Date()).getTime() - verificationToken.getCreatedDateTime().getTime();
+        long differenceInMinutes = (differenceInTime / (1000 * 60)) % 60;
+        return differenceInMinutes;
     }
 }

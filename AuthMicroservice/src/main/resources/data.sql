@@ -4,8 +4,8 @@ VALUES (1, 'ROLE_USER');
 INSERT INTO role (ID, NAME)
 VALUES (2, 'ROLE_ADMIN');
 
-INSERT INTO users (ID, PASSWORD, USERNAME, ROLE_ID)
-VALUES ('d12602fd-b7af-4da1-b1ca-bad8166d1fb3', '$2a$10$28MUwyYgna28OIxoUnE7VOpjby0JRJUU0WQV0UZdMX5XA46XAvBCK', 'username2', 1);
+INSERT INTO users (ID, PASSWORD, USERNAME, ROLE_ID, ACTIVATED)
+VALUES ('d12602fd-b7af-4da1-b1ca-bad8166d1fb3', '$2a$10$28MUwyYgna28OIxoUnE7VOpjby0JRJUU0WQV0UZdMX5XA46XAvBCK', 'username2', 1, false);
 
 INSERT INTO permission(id, name)
 VALUES (1, 'UPDATE_PROFILE_PERMISSION');
@@ -27,7 +27,8 @@ INSERT INTO permission(id, name)
 VALUES (9, 'GET_POST_PERMISSION');
 INSERT INTO permission(id, name)
 VALUES (10, 'GET_FEED_PERMISSION');
-
+INSERT INTO permission(id, name)
+VALUES (11, 'CHANGE_PASSWORD_PERMISSION');
 
 INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 1);
@@ -49,3 +50,5 @@ INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 9);
 INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 10);
+INSERT INTO roles_permissions(role_id, permission_id)
+VALUES (1, 11);

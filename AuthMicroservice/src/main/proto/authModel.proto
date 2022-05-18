@@ -31,3 +31,23 @@ message  LoginResponseProto {
 }
 
 
+message  VerifyAccountProto {
+  string verificationToken = 1;
+}
+message  VerifyAccountResponseProto {
+  string username = 1;
+  string status = 2;
+}
+
+message  ChangePasswordProto {
+  string oldPassword = 1;
+  string newPassword = 2;
+  string repeatedNewPassword = 3;
+  string userId = 4;
+}
+message  ChangePasswordResponseProto {
+  string status = 1;
+  string message = 2;
+}
+
+

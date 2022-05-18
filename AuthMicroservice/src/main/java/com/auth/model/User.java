@@ -24,6 +24,8 @@ public class User implements UserDetails {
     @OneToOne(targetEntity = Role.class, cascade = CascadeType.MERGE)
     private Role role;
 
+    private boolean activated;
+
 
     public User() {
     }
@@ -35,6 +37,7 @@ public class User implements UserDetails {
         this.username = username;
         this.password = password;
         this.role = userType;
+        this.activated = false;
     }
 
     public String getId() {
@@ -45,6 +48,7 @@ public class User implements UserDetails {
         this.id = id;
     }
 
+    @Override
     public String getUsername() {
         return username;
     }
@@ -65,6 +69,14 @@ public class User implements UserDetails {
         return role;
     }
 
+    public boolean isActivated() {
+        return activated;
+    }
+
+    public void setActivated(boolean activated) {
+        this.activated = activated;
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;
@@ -82,7 +94,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return activated;
     }
 
     @Override

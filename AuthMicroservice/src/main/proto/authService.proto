@@ -7,4 +7,6 @@ import "authModel.proto";
 service AuthGrpcService{
   rpc addUser (NewUserProto) returns (NewUserResponseProto);
   rpc login (LoginProto) returns (LoginResponseProto);
+  rpc verifyUserAccount(VerifyAccountProto) returns (VerifyAccountResponseProto);
+  rpc changePassword(ChangePasswordProto) returns (ChangePasswordResponseProto);
 }
