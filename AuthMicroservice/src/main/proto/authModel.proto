@@ -31,3 +31,12 @@ message  LoginResponseProto {
 }
 
 
+message  VerifyAccountProto {
+  string verificationToken = 1;
+}
+message  VerifyAccountResponseProto {
+  string username = 1;
+  string status = 2;
+}
+
+

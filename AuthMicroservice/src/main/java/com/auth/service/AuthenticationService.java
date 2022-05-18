@@ -8,6 +8,8 @@ import reactor.core.publisher.Mono;
 
 public interface AuthenticationService {
 
+    String verifyUserAccount(String token);
+
     TokenDTO login(String username, String password);
 
     Mono<OrchestratorResponseDTO> signUp(NewUserDTO newUserDTO) throws UserAlreadyExistsException;

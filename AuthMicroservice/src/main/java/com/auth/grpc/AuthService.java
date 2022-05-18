@@ -57,4 +57,19 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         responseObserver.onCompleted();
     }
 
+    @Override
+    public void verifyUserAccount(VerifyAccountProto request, StreamObserver<VerifyAccountResponseProto> responseObserver){
+        VerifyAccountResponseProto responseProto;
+        String username = authenticationService.verifyUserAccount(request.getVerificationToken());
+        if(username != null){
+            responseProto = VerifyAccountResponseProto.newBuilder().setUsername(username).setStatus("Status 200").build();
+        }else{
+            responseProto = VerifyAccountResponseProto.newBuilder().setUsername("").setStatus("Status 400").build();
+        }
+
+
+        responseObserver.onNext(responseProto);
+        responseObserver.onCompleted();
+    }
+
 }
