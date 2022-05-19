@@ -23,12 +23,12 @@ public class EmailServiceImpl implements EmailService {
 
     @Async
     @Override
-    public void sendEmail(String userEmail, String verificationToken) {
+    public void sendEmail(String userEmail, String subject, String body) {
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setTo(userEmail);
-        mailMessage.setSubject("Account verification");
+        mailMessage.setSubject(subject);
         mailMessage.setFrom(env.getProperty("spring.mail.username"));
-        mailMessage.setText("http://localhost:4200/confirm/" + verificationToken + " Click on this link to activate your account");
+        mailMessage.setText(body);
 
         javaMailSender.send(mailMessage);
     }

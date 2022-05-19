@@ -11,7 +11,7 @@ message UserDetailsResponseProto{
 	 string id = 1;
      string username = 2;
      string password = 3;
-     RoleProto role = 4;
+     repeated RoleProto role = 4;
      string status = 5;
 }
 
