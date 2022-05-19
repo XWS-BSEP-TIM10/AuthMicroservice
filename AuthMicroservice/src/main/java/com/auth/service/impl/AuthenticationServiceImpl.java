@@ -5,7 +5,9 @@ import com.auth.dto.RegisterDTO;
 import com.auth.dto.TokenDTO;
 import com.auth.exception.PasswordsNotMatchingException;
 import com.auth.exception.RepeatedPasswordNotMatchingException;
+import com.auth.exception.TokenExpiredException;
 import com.auth.exception.UserAlreadyExistsException;
+import com.auth.model.Role;
 import com.auth.model.User;
 import com.auth.model.VerificationToken;
 import com.auth.saga.create.CreateUserOrchestrator;
@@ -22,11 +24,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
-import java.util.Date;
-import java.util.UUID;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
@@ -38,6 +42,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final VerificationTokenService verificationTokenService;
     private final EmailService emailService;
+    private final int REGISTRATION_TOKEN_EXPIRES = 60;
+    private final int RECOVERY_TOKEN_EXPIRES = 60;
 
     @Autowired
     public AuthenticationServiceImpl(AuthenticationManager authenticationManager, TokenUtils tokenUtils, UserService userService, RoleService roleService, PasswordEncoder passwordEncoder, VerificationTokenService verificationTokenService, EmailService emailService) {
@@ -73,7 +79,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         OrchestratorResponseDTO response = orchestrator.registerUser(registerDTO).block();
 
         VerificationToken verificationToken = saveVerificationToken(registerDTO, response);
-        emailService.sendEmail(registerDTO.getEmail(), verificationToken.getToken());
+        emailService.sendEmail(registerDTO.getEmail(), "Account verification", "http://localhost:4200/confirm/" + verificationToken.getToken() + " Click on this link to activate your account");
 
         return response;
     }
@@ -95,7 +101,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private VerificationToken saveVerificationToken(RegisterDTO registerDTO, OrchestratorResponseDTO response) {
         if(response.getSuccess()){
-            User user = new User(registerDTO.getUuid(), registerDTO.getUsername(), registerDTO.getPassword(), roleService.findByName("ROLE_USER"));
+            List<Role> roles = new ArrayList<Role>();
+            roles.add(roleService.findByName("ROLE_USER"));
+            User user = new User(registerDTO.getUuid(), registerDTO.getUsername(), registerDTO.getPassword(), roles);
             VerificationToken verificationToken = new VerificationToken(user);
             verificationTokenService.saveVerificationToken(verificationToken);
             return verificationToken;
@@ -124,28 +132,62 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     private String getToken(User user) {
-        return tokenUtils.generateToken(user.getRole().getName(), user.getId());
+        return tokenUtils.generateToken(user.getRoles().get(0).getName(), user.getId());
     }
 
     @Override
-    public String verifyUserAccount(String token) {
+    public String verifyUserAccount(String token) throws TokenExpiredException {
 
         VerificationToken verificationToken = verificationTokenService.findVerificationTokenByToken(token);
         User user = userService.findByUsername(verificationToken.getUser().getUsername());
+        verificationTokenService.delete(verificationToken);
 
-        if(getDifferenceInMinutes(verificationToken) < 60) {
+        if(getDifferenceInMinutes(verificationToken) < REGISTRATION_TOKEN_EXPIRES) {
             user.setActivated(true);
             userService.save(user);
             return user.getUsername();
         }else {
-            verificationTokenService.delete(verificationToken);
-            return null;
+            throw new TokenExpiredException();
+        }
+    }
+
+    @Override
+    public boolean recoverAccount(String id, String email) {
+        User user = userService.findById(id);
+        if(user != null) {
+            VerificationToken verificationToken = new VerificationToken(user);
+            verificationTokenService.saveVerificationToken(verificationToken);
+            emailService.sendEmail(email, "Account recovery", "http://localhost:4200/recover/" + verificationToken.getToken() + " Click on this link to change your password");
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void changePasswordRecovery(String newPassword, String repeatedNewPassword, String token) throws RepeatedPasswordNotMatchingException, TokenExpiredException {
+        if (!newPassword.equals(repeatedNewPassword)) {
+            throw new RepeatedPasswordNotMatchingException();
+        }
+        VerificationToken verificationToken = verificationTokenService.findVerificationTokenByToken(token);
+        User user = userService.findByUsername(verificationToken.getUser().getUsername());
+
+        verificationTokenService.delete(verificationToken);
+
+        Long differenceInMinutes = getDifferenceInMinutes(verificationToken);
+
+        if(verificationToken == null){
+            throw new TokenExpiredException();
+        }else if (differenceInMinutes < RECOVERY_TOKEN_EXPIRES) {
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userService.save(user);
+        }else {
+            throw new TokenExpiredException();
         }
     }
 
     private long getDifferenceInMinutes(VerificationToken verificationToken) {
-        long differenceInTime = (new Date()).getTime() - verificationToken.getCreatedDateTime().getTime();
-        long differenceInMinutes = (differenceInTime / (1000 * 60)) % 60;
+        LocalDateTime tokenCreated = LocalDateTime.ofInstant(verificationToken.getCreatedDateTime().toInstant(), ZoneId.systemDefault());
+        Long differenceInMinutes = ChronoUnit.MINUTES.between(tokenCreated, LocalDateTime.now());
         return differenceInMinutes;
     }
 }

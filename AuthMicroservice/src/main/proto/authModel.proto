@@ -50,4 +50,21 @@ message  ChangePasswordResponseProto {
   string message = 2;
 }
 
+message RecoverProto{
+  string id = 1;
+  string email = 2;
+}
 
+message RecoverResponseProto{
+  string status = 1;
+}
+
+message RecoveryPasswordProto{
+  string token = 1;
+  string password = 2;
+  string repeatedPassword = 3;
+}
+
+message RecoveryPasswordResponseProto{
+  string status = 1;
+}
