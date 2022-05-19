@@ -4,8 +4,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
@@ -21,8 +20,11 @@ public class User implements UserDetails {
     @Column(name = "password", unique = false, nullable = false)
     private String password;
 
-    @OneToOne(targetEntity = Role.class, cascade = CascadeType.MERGE)
-    private Role role;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_role",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
+    private List<Role> roles;
 
     private boolean activated;
 
@@ -31,12 +33,12 @@ public class User implements UserDetails {
     }
 
 
-    public User(String uuid, String username, String password, Role userType) {
+    public User(String uuid, String username, String password, List<Role> userType) {
         super();
         this.id = uuid;
         this.username = username;
         this.password = password;
-        this.role = userType;
+        this.roles = userType;
         this.activated = false;
     }
 
@@ -65,8 +67,12 @@ public class User implements UserDetails {
         this.password = password;
     }
 
-    public Role getRole() {
-        return role;
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
+    }
+
+    public List<Role> getRoles() {
+        return roles;
     }
 
     public boolean isActivated() {
@@ -99,15 +105,16 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-       // ArrayList<Role> roles = new ArrayList<>();
-       // roles.add(role);
-        return this.role.getPermission();
+        Set<Permission> permissions = new HashSet<Permission>();
+        for(Role role : this.roles){
+            for(Permission permission : role.getPermission()){
+                permissions.add(permission);
+            }
+        }
+        return permissions;
     }
 
 
-	public void setRole(Role role) {
-		this.role = role;
-	}
     
     
 }

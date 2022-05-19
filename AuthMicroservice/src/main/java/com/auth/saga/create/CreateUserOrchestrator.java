@@ -3,6 +3,7 @@ package com.auth.saga.create;
 import com.auth.dto.ConnectionsRegisterDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.exception.WorkflowException;
+import com.auth.model.Role;
 import com.auth.model.User;
 import com.auth.saga.create.workflow.AuthCreateWorkflowStep;
 import com.auth.saga.create.workflow.ConnectionsCreateWorkflowStep;
@@ -65,8 +66,9 @@ public class CreateUserOrchestrator {
 
     private Workflow getRegisterUserWorkflow(RegisterDTO registerDTO) {
         List<WorkflowStep> workflowSteps = new ArrayList<>();
-
-        User user = new User(registerDTO.getUuid(), registerDTO.getUsername(), registerDTO.getPassword(), roleService.findByName("ROLE_USER"));
+        List<Role> roles = new ArrayList<Role>();
+        roles.add(roleService.findByName("ROLE_USER"));
+        User user = new User(registerDTO.getUuid(), registerDTO.getUsername(), registerDTO.getPassword(), roles);
 
         AuthCreateWorkflowStep authWorkflowStep = new AuthCreateWorkflowStep(user, userService, passwordEncoder);
         workflowSteps.add(authWorkflowStep);
@@ -75,9 +77,9 @@ public class CreateUserOrchestrator {
 
         ProfileCreateWorkflowStep profileWorkflowStep = new ProfileCreateWorkflowStep(profileClient, registerDTO);
         workflowSteps.add(profileWorkflowStep);
-
-        ConnectionsCreateWorkflowStep connectionsWorkflowStep = new ConnectionsCreateWorkflowStep(connectionsClient, new ConnectionsRegisterDTO(registerDTO.getUuid(), registerDTO.getUsername()));
-        workflowSteps.add(connectionsWorkflowStep);
+//
+//        ConnectionsCreateWorkflowStep connectionsWorkflowStep = new ConnectionsCreateWorkflowStep(connectionsClient, new ConnectionsRegisterDTO(registerDTO.getUuid(), registerDTO.getUsername()));
+//        workflowSteps.add(connectionsWorkflowStep);
 
         return new Workflow(workflowSteps);
     }
