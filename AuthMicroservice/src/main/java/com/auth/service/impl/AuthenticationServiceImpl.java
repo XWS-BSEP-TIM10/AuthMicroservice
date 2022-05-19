@@ -19,6 +19,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -168,26 +169,56 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (!newPassword.equals(repeatedNewPassword)) {
             throw new RepeatedPasswordNotMatchingException();
         }
+        
         VerificationToken verificationToken = verificationTokenService.findVerificationTokenByToken(token);
+        
+        if(verificationToken == null){
+            throw new TokenExpiredException();
+        }
         User user = userService.findByUsername(verificationToken.getUser().getUsername());
 
         verificationTokenService.delete(verificationToken);
-
-        Long differenceInMinutes = getDifferenceInMinutes(verificationToken);
-
-        if(verificationToken == null){
-            throw new TokenExpiredException();
-        }else if (differenceInMinutes < RECOVERY_TOKEN_EXPIRES) {
-            user.setPassword(passwordEncoder.encode(newPassword));
-            userService.save(user);
-        }else {
-            throw new TokenExpiredException();
-        }
+        
+        if (getDifferenceInMinutes(verificationToken) >= RECOVERY_TOKEN_EXPIRES) throw new TokenExpiredException();
+        
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userService.save(user);
     }
 
     private long getDifferenceInMinutes(VerificationToken verificationToken) {
         LocalDateTime tokenCreated = LocalDateTime.ofInstant(verificationToken.getCreatedDateTime().toInstant(), ZoneId.systemDefault());
         Long differenceInMinutes = ChronoUnit.MINUTES.between(tokenCreated, LocalDateTime.now());
         return differenceInMinutes;
+    }
+    
+    public TokenDTO passwordlessSignIn(String token) throws TokenExpiredException {
+    	 VerificationToken verificationToken = verificationTokenService.findVerificationTokenByToken(token);
+         
+         if(verificationToken == null){
+             throw new TokenExpiredException();
+         }
+         User user = userService.findByUsername(verificationToken.getUser().getUsername());
+
+         verificationTokenService.delete(verificationToken);
+         
+         if (getDifferenceInMinutes(verificationToken) >= RECOVERY_TOKEN_EXPIRES) throw new TokenExpiredException();
+         
+    	 Authentication authentication = new UsernamePasswordAuthenticationToken(
+                 user.getUsername(),null, user.getAuthorities());
+         SecurityContextHolder.getContext().setAuthentication(authentication);
+         return new TokenDTO(getToken(user));
+    	
+    }
+    
+    @Override
+    public boolean generateTokenPasswordless(String id, String email) {
+        User user = userService.findById(id);
+        if(user != null) {
+            VerificationToken verificationToken = new VerificationToken(user);
+            verificationTokenService.saveVerificationToken(verificationToken);
+            emailService.sendEmail(email, "Passwordless login", "http://localhost:4200/login/passwordless/" + verificationToken.getToken() + " Click on this link to sign in");
+            return true;
+        }
+        return false;
     }
 }

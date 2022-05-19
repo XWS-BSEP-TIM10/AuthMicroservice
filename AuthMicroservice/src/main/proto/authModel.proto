@@ -30,7 +30,6 @@ message  LoginResponseProto {
   string status = 3;
 }
 
-
 message  VerifyAccountProto {
   string verificationToken = 1;
 }
@@ -50,12 +49,12 @@ message  ChangePasswordResponseProto {
   string message = 2;
 }
 
-message RecoverProto{
+message SendTokenProto{
   string id = 1;
   string email = 2;
 }
 
-message RecoverResponseProto{
+message SendTokenResponseProto{
   string status = 1;
 }
 

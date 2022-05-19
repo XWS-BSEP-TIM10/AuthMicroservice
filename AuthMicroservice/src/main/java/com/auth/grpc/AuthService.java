@@ -93,16 +93,16 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
     }
 
     @Override
-    public void recoverAccount(RecoverProto request, StreamObserver<RecoverResponseProto> responseObserver) {
+    public void recoverAccount(SendTokenProto request, StreamObserver<SendTokenResponseProto> responseObserver) {
 
-        RecoverResponseProto responseProto;
+        SendTokenResponseProto responseProto;
 
         boolean accomplished = authenticationService.recoverAccount(request.getId(), request.getEmail());
 
         if(accomplished){
-            responseProto = RecoverResponseProto.newBuilder().setStatus("Status 200").build();
+            responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 200").build();
         }else{
-            responseProto = RecoverResponseProto.newBuilder().setStatus("Status 400").build();
+            responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 400").build();
         }
 
         responseObserver.onNext(responseProto);
@@ -128,4 +128,39 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         responseObserver.onCompleted();
 
     }
+    
+    @Override
+    public void generateTokenPasswordless(SendTokenProto request, StreamObserver<SendTokenResponseProto> responseObserver) {
+
+        SendTokenResponseProto responseProto;
+
+        boolean accomplished = authenticationService.generateTokenPasswordless(request.getId(), request.getEmail());
+
+        if(accomplished){
+            responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 200").build();
+        }else{
+            responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 400").build();
+        }
+
+        responseObserver.onNext(responseProto);
+        responseObserver.onCompleted();
+
+    }
+    
+    @Override
+    public void passwordlessLogin(VerifyAccountProto request, StreamObserver<LoginResponseProto> responseObserver) {
+        LoginResponseProto responseProto;
+        try {
+            TokenDTO tokenDTO = authenticationService.passwordlessSignIn(request.getVerificationToken());
+            responseProto = LoginResponseProto.newBuilder().setJwt(tokenDTO.getJwt()).setStatus("Status 200").build();
+        } catch (Exception ex) {
+            responseProto = LoginResponseProto.newBuilder().setJwt("").setStatus("Status 400").build();
+        }
+
+        responseObserver.onNext(responseProto);
+        responseObserver.onCompleted();
+    }
+    
+    
+    
 }

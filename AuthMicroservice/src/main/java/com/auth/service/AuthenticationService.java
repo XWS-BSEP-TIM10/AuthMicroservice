@@ -25,5 +25,9 @@ public interface AuthenticationService {
     OrchestratorResponseDTO signUp(NewUserDTO newUserDTO) throws UserAlreadyExistsException;
 
     void changePassword(String userId, String oldPassword, String newPassword, String repeatedNewPassword) throws PasswordsNotMatchingException, RepeatedPasswordNotMatchingException;
+    
+    TokenDTO passwordlessSignIn(String token) throws TokenExpiredException;
+    
+    public boolean generateTokenPasswordless(String id, String email);
 
 }
