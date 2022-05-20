@@ -13,4 +13,5 @@ service AuthGrpcService{
   rpc changePasswordRecovery(RecoveryPasswordProto) returns (RecoveryPasswordResponseProto);
   rpc generateTokenPasswordless(SendTokenProto) returns (SendTokenResponseProto);
   rpc passwordlessLogin (VerifyAccountProto) returns (LoginResponseProto);
+  rpc refreshToken (RefreshTokenProto) returns (LoginResponseProto);
 }

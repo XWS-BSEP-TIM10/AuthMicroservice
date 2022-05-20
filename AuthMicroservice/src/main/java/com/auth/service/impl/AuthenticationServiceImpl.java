@@ -64,7 +64,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 username, password));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         User user = (User) authentication.getPrincipal();
-        return new TokenDTO(getToken(user));
+        return new TokenDTO(getToken(user), getRefreshToken(user));
     }
 
     @Transactional
@@ -133,7 +133,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     private String getToken(User user) {
-        return tokenUtils.generateToken(user.getRoles().get(0).getName(), user.getId());
+        return tokenUtils.generateToken(user.getRoles().get(0).getName(), user.getId(),false);
+    }
+    
+    public String getRefreshToken(User user) {
+        return tokenUtils.generateToken(user.getRoles().get(0).getName(), user.getId(), true);
     }
 
     @Override
@@ -206,7 +210,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     	 Authentication authentication = new UsernamePasswordAuthenticationToken(
                  user.getUsername(),null, user.getAuthorities());
          SecurityContextHolder.getContext().setAuthentication(authentication);
-         return new TokenDTO(getToken(user));
+         return new TokenDTO(getToken(user), getRefreshToken(user));
     	
     }
     
@@ -220,5 +224,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             return true;
         }
         return false;
+    }
+    
+    public TokenDTO refreshToken(String token) {
+        String id = tokenUtils.getUsernameFromToken(token.split(" ")[1]);
+        User user = userService.findById(id);
+        return new TokenDTO(getToken(user), getRefreshToken(user));
     }
 }
