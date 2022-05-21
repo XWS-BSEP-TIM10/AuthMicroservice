@@ -39,7 +39,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
             else
                 responseProto = NewUserResponseProto.newBuilder().setId(response.getId()).setStatus("Status 200").build();
         } catch (UserAlreadyExistsException e) {
-            responseProto = NewUserResponseProto.newBuilder().setId("").setStatus("Status 400").build();
+            responseProto = NewUserResponseProto.newBuilder().setId("").setStatus("Status 409").build();
         }
 
         responseObserver.onNext(responseProto);
@@ -51,7 +51,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         LoginResponseProto responseProto;
         try {
             TokenDTO tokenDTO = authenticationService.login(request.getUsername(), request.getPassword());
-            responseProto = LoginResponseProto.newBuilder().setJwt(tokenDTO.getJwt()).setStatus("Status 200").build();
+            responseProto = LoginResponseProto.newBuilder().setJwt(tokenDTO.getJwt()).setRefreshToken(tokenDTO.getRefreshToken()).setStatus("Status 200").build();
         } catch (Exception ex) {
             responseProto = LoginResponseProto.newBuilder().setJwt("").setStatus("Status 400").build();
         }
@@ -152,7 +152,21 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         LoginResponseProto responseProto;
         try {
             TokenDTO tokenDTO = authenticationService.passwordlessSignIn(request.getVerificationToken());
-            responseProto = LoginResponseProto.newBuilder().setJwt(tokenDTO.getJwt()).setStatus("Status 200").build();
+            responseProto = LoginResponseProto.newBuilder().setJwt(tokenDTO.getJwt()).setRefreshToken(tokenDTO.getRefreshToken()).setStatus("Status 200").build();
+        } catch (Exception ex) {
+            responseProto = LoginResponseProto.newBuilder().setJwt("").setStatus("Status 400").build();
+        }
+
+        responseObserver.onNext(responseProto);
+        responseObserver.onCompleted();
+    }
+    
+    @Override
+    public void refreshToken(RefreshTokenProto request, StreamObserver<LoginResponseProto> responseObserver) {
+        LoginResponseProto responseProto;
+        try {
+            TokenDTO tokenDTO = authenticationService.refreshToken(request.getToken());
+            responseProto = LoginResponseProto.newBuilder().setJwt(tokenDTO.getJwt()).setRefreshToken(tokenDTO.getRefreshToken()).setStatus("Status 200").build();
         } catch (Exception ex) {
             responseProto = LoginResponseProto.newBuilder().setJwt("").setStatus("Status 400").build();
         }

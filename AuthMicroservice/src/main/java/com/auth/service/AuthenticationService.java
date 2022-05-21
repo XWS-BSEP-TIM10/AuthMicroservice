@@ -29,5 +29,7 @@ public interface AuthenticationService {
     TokenDTO passwordlessSignIn(String token) throws TokenExpiredException;
     
     public boolean generateTokenPasswordless(String id, String email);
+    
+    TokenDTO refreshToken(String token);
 
 }
