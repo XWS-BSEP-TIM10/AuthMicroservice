@@ -39,7 +39,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
             else
                 responseProto = NewUserResponseProto.newBuilder().setId(response.getId()).setStatus("Status 200").build();
         } catch (UserAlreadyExistsException e) {
-            responseProto = NewUserResponseProto.newBuilder().setId("").setStatus("Status 400").build();
+            responseProto = NewUserResponseProto.newBuilder().setId("").setStatus("Status 409").build();
         }
 
         responseObserver.onNext(responseProto);
