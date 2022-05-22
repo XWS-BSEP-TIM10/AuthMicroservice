@@ -136,7 +136,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return tokenUtils.generateToken(user.getRoles().get(0).getName(), user.getId(),false);
     }
     
-    public String getRefreshToken(User user) {
+    private String getRefreshToken(User user) {
         return tokenUtils.generateToken(user.getRoles().get(0).getName(), user.getId(), true);
     }
 
@@ -201,6 +201,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return differenceInMinutes;
     }
     
+    @Override
     public TokenDTO passwordlessSignIn(String token) throws TokenExpiredException {
     	 VerificationToken verificationToken = verificationTokenService.findVerificationTokenByToken(token);
          
@@ -232,9 +233,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return false;
     }
     
+    @Override
     public TokenDTO refreshToken(String token) {
         String id = tokenUtils.getUsernameFromToken(token.split(" ")[1]);
         User user = userService.findById(id);
         return new TokenDTO(getToken(user), getRefreshToken(user));
+    }
+    
+    @Override
+    public Boolean checkToken(String token) {
+    	VerificationToken verificationToken = verificationTokenService.findVerificationTokenByToken(token);
+        if (verificationToken == null || getDifferenceInMinutes(verificationToken) >= RECOVERY_TOKEN_EXPIRES) return false;
+        return true;
     }
 }
