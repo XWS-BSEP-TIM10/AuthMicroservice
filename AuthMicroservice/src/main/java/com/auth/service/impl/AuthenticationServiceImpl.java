@@ -162,14 +162,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public boolean recoverAccount(String id, String email) {
-        User user = userService.findById(id);
-        if(user != null) {
+        try {
+            User user = userService.findById(id);
             VerificationToken verificationToken = new VerificationToken(user);
             verificationTokenService.saveVerificationToken(verificationToken);
             emailService.sendEmail(email, "Account recovery", "https://localhost:4200/recover/" + verificationToken.getToken() + " Click on this link to change your password");
             return true;
+        }catch(NullPointerException ex){
+
+            return false;
         }
-        return false;
     }
 
     @Override
