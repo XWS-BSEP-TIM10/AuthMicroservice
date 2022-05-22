@@ -80,7 +80,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         OrchestratorResponseDTO response = orchestrator.registerUser(registerDTO).block();
 
         VerificationToken verificationToken = saveVerificationToken(registerDTO, response);
-        emailService.sendEmail(registerDTO.getEmail(), "Account verification", "http://localhost:4200/confirm/" + verificationToken.getToken() + " Click on this link to activate your account");
+        emailService.sendEmail(registerDTO.getEmail(), "Account verification", "https://localhost:4200/confirm/" + verificationToken.getToken() + " Click on this link to activate your account");
 
         return response;
     }
@@ -144,7 +144,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public String verifyUserAccount(String token) throws TokenExpiredException {
 
         VerificationToken verificationToken = verificationTokenService.findVerificationTokenByToken(token);
+        if(verificationToken == null){
+            throw new TokenExpiredException();
+        }
         User user = userService.findByUsername(verificationToken.getUser().getUsername());
+
         verificationTokenService.delete(verificationToken);
 
         if(getDifferenceInMinutes(verificationToken) < REGISTRATION_TOKEN_EXPIRES) {
@@ -162,7 +166,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if(user != null) {
             VerificationToken verificationToken = new VerificationToken(user);
             verificationTokenService.saveVerificationToken(verificationToken);
-            emailService.sendEmail(email, "Account recovery", "http://localhost:4200/recover/" + verificationToken.getToken() + " Click on this link to change your password");
+            emailService.sendEmail(email, "Account recovery", "https://localhost:4200/recover/" + verificationToken.getToken() + " Click on this link to change your password");
             return true;
         }
         return false;
@@ -220,7 +224,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if(user != null) {
             VerificationToken verificationToken = new VerificationToken(user);
             verificationTokenService.saveVerificationToken(verificationToken);
-            emailService.sendEmail(email, "Passwordless login", "http://localhost:4200/login/passwordless/" + verificationToken.getToken() + " Click on this link to sign in");
+            emailService.sendEmail(email, "Passwordless login", "https://localhost:4200/login/passwordless/" + verificationToken.getToken() + " Click on this link to sign in");
             return true;
         }
         return false;
