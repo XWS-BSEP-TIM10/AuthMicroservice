@@ -175,6 +175,19 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         responseObserver.onCompleted();
     }
     
+    @Override
+    public void checkToken(TokenProto request, StreamObserver<SendTokenResponseProto> responseObserver) {
+    		SendTokenResponseProto responseProto;
+      
+            Boolean isValid = authenticationService.checkToken(request.getToken());
+            if(isValid) responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 200").build();
+            else      responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 404").build();
+            
+        
+
+        responseObserver.onNext(responseProto);
+        responseObserver.onCompleted();
+    }
     
     
 }

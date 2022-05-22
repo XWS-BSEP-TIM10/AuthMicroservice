@@ -72,3 +72,7 @@ message RecoveryPasswordResponseProto{
 message RefreshTokenProto {
   string token = 1;
 }
+
+message TokenProto {
+  string token = 1;
+}

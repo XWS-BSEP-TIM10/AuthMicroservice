@@ -31,5 +31,7 @@ public interface AuthenticationService {
     public boolean generateTokenPasswordless(String id, String email);
     
     TokenDTO refreshToken(String token);
+    
+    Boolean checkToken(String token);
 
 }
