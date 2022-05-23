@@ -31,7 +31,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
                     request.getEmail(), request.getPhoneNumber(), request.getGender(),
                     request.getDateOfBirth(), request.getUsername(), request.getPassword(),
                     request.getBiography());
-
+            newUserDTO.setId(request.getId());
             OrchestratorResponseDTO response = authenticationService.signUp(newUserDTO);
 
             if (!response.getSuccess())

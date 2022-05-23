@@ -13,6 +13,7 @@ message NewUserProto{
   string username = 7;
   string password = 8;
   string biography = 9;
+  string id = 10;
 }
 
 message NewUserResponseProto{

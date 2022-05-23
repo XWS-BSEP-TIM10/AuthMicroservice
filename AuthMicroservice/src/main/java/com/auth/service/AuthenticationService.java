@@ -6,6 +6,7 @@ import com.auth.exception.PasswordsNotMatchingException;
 import com.auth.exception.RepeatedPasswordNotMatchingException;
 import com.auth.exception.TokenExpiredException;
 import com.auth.exception.UserAlreadyExistsException;
+import com.auth.model.User;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 import io.grpc.stub.StreamObserver;
 import proto.ChangePasswordProto;
@@ -15,6 +16,8 @@ import reactor.core.publisher.Mono;
 public interface AuthenticationService {
 
     String verifyUserAccount(String token) throws TokenExpiredException;
+
+    Boolean userNotActivated(String id);
 
     boolean recoverAccount(String email, String id);
 
