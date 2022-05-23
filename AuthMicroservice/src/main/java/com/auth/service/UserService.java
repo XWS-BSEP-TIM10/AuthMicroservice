@@ -10,6 +10,7 @@ public interface UserService {
     User findByUsername(String username);
     List<User> findAll ();
     boolean userExists(String username);
+    User saveOrRewrite(User user);
     User save(User user);
     void delete(User user);
     User update(String id, String username);

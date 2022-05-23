@@ -3,6 +3,8 @@ package com.auth.service.impl;
 import java.util.List;
 import java.util.Optional;
 
+import com.auth.grpc.AuthService;
+import com.auth.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -35,7 +37,9 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public User findById(String id) throws AccessDeniedException {
-		return userRepository.findById(id).orElseGet(null);
+		if(userRepository.findById(id).isPresent())
+			return userRepository.findById(id).get();
+		return null;
 	}
 
 	public List<User> findAll() throws AccessDeniedException {
@@ -46,6 +50,23 @@ public class UserServiceImpl implements UserService {
 	public boolean userExists(String username) {
 		Optional<User> user =  userRepository.findByUsername(username);
 		return user.isPresent();
+	}
+
+	@Override
+	public User saveOrRewrite(User user) {
+		if(userRepository.findById(user.getId()).isPresent()){
+			return updateUser(user.getId(), user);
+		}
+		return userRepository.save(user);
+	}
+
+	private User updateUser(String id, User user) {
+		User existingUser = findById(id);
+		if(existingUser == null)
+			return null;
+		existingUser.setUsername(user.getUsername());
+		existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+		return userRepository.save(existingUser);
 	}
 
 	@Override

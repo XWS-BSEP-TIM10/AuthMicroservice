@@ -2,6 +2,8 @@ package com.auth.dto;
 
 public class NewUserDTO {
 
+    private String id;
+
     private String firstName;
 
     private String lastName;
@@ -105,5 +107,13 @@ public class NewUserDTO {
 
     public void setBiography(String biography) {
         this.biography = biography;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getId() {
+        return id;
     }
 }

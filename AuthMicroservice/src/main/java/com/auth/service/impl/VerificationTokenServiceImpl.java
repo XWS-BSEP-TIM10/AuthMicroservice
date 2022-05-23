@@ -1,5 +1,6 @@
 package com.auth.service.impl;
 
+import com.auth.model.User;
 import com.auth.model.VerificationToken;
 import com.auth.repository.VerificationTokenRepository;
 import com.auth.service.VerificationTokenService;
@@ -21,6 +22,11 @@ public class VerificationTokenServiceImpl implements VerificationTokenService {
     @Override
     public VerificationToken findVerificationTokenByToken(String token) {
         return verificationTokenRepository.findVerificationTokenByToken(token);
+    }
+
+    @Override
+    public VerificationToken findVerificationTokenByUser(String id) {
+        return verificationTokenRepository.findVerificationTokenByUserId(id);
     }
 
     @Override

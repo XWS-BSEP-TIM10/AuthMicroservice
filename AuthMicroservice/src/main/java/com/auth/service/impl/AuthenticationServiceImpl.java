@@ -70,11 +70,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Transactional
     @Override
     public OrchestratorResponseDTO signUp(NewUserDTO newUserDTO) throws UserAlreadyExistsException {
-        if(userService.userExists(newUserDTO.getUsername()))
-            throw new UserAlreadyExistsException();
 
-        RegisterDTO registerDTO = new RegisterDTO(UUID.randomUUID().toString(), newUserDTO);
+        RegisterDTO registerDTO;
 
+        if(userNotActivated(newUserDTO.getId())){
+            registerDTO = new RegisterDTO(newUserDTO.getId(), newUserDTO);
+        }else {
+            if(userService.userExists(newUserDTO.getUsername()))
+                throw new UserAlreadyExistsException();
+            registerDTO = new RegisterDTO(UUID.randomUUID().toString(), newUserDTO);
+        }
 
         CreateUserOrchestrator orchestrator = new CreateUserOrchestrator(userService, roleService, getProfileWebClient(), getConnectionsWebClient(), passwordEncoder);
         OrchestratorResponseDTO response = orchestrator.registerUser(registerDTO).block();
@@ -245,5 +250,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     	VerificationToken verificationToken = verificationTokenService.findVerificationTokenByToken(token);
         if (verificationToken == null || getDifferenceInMinutes(verificationToken) >= RECOVERY_TOKEN_EXPIRES) return false;
         return true;
+    }
+
+    @Override
+    public Boolean userNotActivated(String id){
+        VerificationToken verificationToken = verificationTokenService.findVerificationTokenByUser(id);
+        if(verificationToken == null) return false;
+        verificationTokenService.delete(verificationToken);
+        if(userService.findById(id) != null && ! userService.findById(id).isActivated()) return true;
+        return false;
     }
 }
