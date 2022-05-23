@@ -41,6 +41,8 @@ INSERT INTO permission(id, name)
 VALUES (14, 'GET_FEED_PERMISSION');
 INSERT INTO permission(id, name)
 VALUES (15, 'UPDATE_PROFILE_PERMISSION');
+INSERT INTO permission(id, name)
+VALUES (16, 'ADMIN_PERMISSION');
 
 INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 1);
@@ -72,9 +74,11 @@ INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 14);
 INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 15);
+INSERT INTO roles_permissions(role_id, permission_id)
+VALUES (2, 16);
 
 INSERT INTO user_role (ROLE_ID, USER_ID)
-VALUES (1, 'd12602fd-b7af-4da1-b1ca-bad8166d1fb3');
+VALUES (2, 'd12602fd-b7af-4da1-b1ca-bad8166d1fb3');
 INSERT INTO user_role (ROLE_ID, USER_ID)
 VALUES (1, 'd12602fd-b7af-4da1-b1ca-bad8166d1fb2');
 INSERT INTO user_role (ROLE_ID, USER_ID)
