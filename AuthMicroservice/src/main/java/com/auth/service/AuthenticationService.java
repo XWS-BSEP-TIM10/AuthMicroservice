@@ -2,10 +2,7 @@ package com.auth.service;
 
 import com.auth.dto.NewUserDTO;
 import com.auth.dto.TokenDTO;
-import com.auth.exception.PasswordsNotMatchingException;
-import com.auth.exception.RepeatedPasswordNotMatchingException;
-import com.auth.exception.TokenExpiredException;
-import com.auth.exception.UserAlreadyExistsException;
+import com.auth.exception.*;
 import com.auth.model.User;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 import io.grpc.stub.StreamObserver;
@@ -25,7 +22,7 @@ public interface AuthenticationService {
 
     TokenDTO login(String username, String password);
 
-    OrchestratorResponseDTO signUp(NewUserDTO newUserDTO) throws UserAlreadyExistsException;
+    OrchestratorResponseDTO signUp(NewUserDTO newUserDTO) throws UserAlreadyExistsException, EmailAlreadyExistsException;
 
     void changePassword(String userId, String oldPassword, String newPassword, String repeatedNewPassword) throws PasswordsNotMatchingException, RepeatedPasswordNotMatchingException;
     

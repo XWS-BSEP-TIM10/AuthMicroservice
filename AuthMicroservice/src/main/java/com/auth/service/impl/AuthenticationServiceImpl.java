@@ -3,10 +3,7 @@ package com.auth.service.impl;
 import com.auth.dto.NewUserDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.dto.TokenDTO;
-import com.auth.exception.PasswordsNotMatchingException;
-import com.auth.exception.RepeatedPasswordNotMatchingException;
-import com.auth.exception.TokenExpiredException;
-import com.auth.exception.UserAlreadyExistsException;
+import com.auth.exception.*;
 import com.auth.model.Role;
 import com.auth.model.User;
 import com.auth.model.VerificationToken;
@@ -69,7 +66,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Transactional
     @Override
-    public OrchestratorResponseDTO signUp(NewUserDTO newUserDTO) throws UserAlreadyExistsException {
+    public OrchestratorResponseDTO signUp(NewUserDTO newUserDTO) throws UserAlreadyExistsException, EmailAlreadyExistsException {
 
         RegisterDTO registerDTO;
 
@@ -78,6 +75,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }else {
             if(userService.userExists(newUserDTO.getUsername()))
                 throw new UserAlreadyExistsException();
+            if(userService.findById(newUserDTO.getId()) != null && userService.findById(newUserDTO.getId()).isActivated())
+                throw new EmailAlreadyExistsException();
+
             registerDTO = new RegisterDTO(UUID.randomUUID().toString(), newUserDTO);
         }
 
@@ -257,7 +257,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         VerificationToken verificationToken = verificationTokenService.findVerificationTokenByUser(id);
         if(verificationToken == null) return false;
         verificationTokenService.delete(verificationToken);
-        if(userService.findById(id) != null && ! userService.findById(id).isActivated()) return true;
+        if(userService.findById(id) != null && !userService.findById(id).isActivated()) return true;
         return false;
     }
 }
