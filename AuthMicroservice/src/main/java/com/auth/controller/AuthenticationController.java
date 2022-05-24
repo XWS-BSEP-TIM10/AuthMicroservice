@@ -3,6 +3,7 @@ package com.auth.controller;
 import com.auth.dto.LoginDTO;
 import com.auth.dto.NewUserDTO;
 import com.auth.dto.TokenDTO;
+import com.auth.exception.EmailAlreadyExistsException;
 import com.auth.exception.UserAlreadyExistsException;
 import com.auth.model.User;
 import com.auth.model.VerificationToken;
@@ -50,6 +51,8 @@ public class AuthenticationController {
 
             return new ResponseEntity<>(newUserDTO, HttpStatus.CREATED);
         } catch (UserAlreadyExistsException e) {
+            return ResponseEntity.badRequest().build();
+        } catch(EmailAlreadyExistsException e){
             return ResponseEntity.badRequest().build();
         }
     }

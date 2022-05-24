@@ -2,10 +2,7 @@ package com.auth.grpc;
 
 import com.auth.dto.NewUserDTO;
 import com.auth.dto.TokenDTO;
-import com.auth.exception.PasswordsNotMatchingException;
-import com.auth.exception.RepeatedPasswordNotMatchingException;
-import com.auth.exception.TokenExpiredException;
-import com.auth.exception.UserAlreadyExistsException;
+import com.auth.exception.*;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.service.AuthenticationService;
 import io.grpc.stub.StreamObserver;
@@ -40,6 +37,8 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
                 responseProto = NewUserResponseProto.newBuilder().setId(response.getId()).setStatus("Status 200").build();
         } catch (UserAlreadyExistsException e) {
             responseProto = NewUserResponseProto.newBuilder().setId("").setStatus("Status 409").build();
+        } catch(EmailAlreadyExistsException e){
+            responseProto = NewUserResponseProto.newBuilder().setId("").setStatus("Status 418").build();
         }
 
         responseObserver.onNext(responseProto);
