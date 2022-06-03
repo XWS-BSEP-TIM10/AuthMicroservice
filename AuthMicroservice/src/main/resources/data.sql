@@ -54,6 +54,8 @@ INSERT INTO permission(id, name)
 VALUES (17, 'CREATE_API_TOKEN');
 INSERT INTO permission(id, name)
 VALUES (18, 'CREATE_JOB_AD');
+INSERT INTO permission(id, name)
+VALUES (19, 'GET_JOB_ADS');
 
 INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 1);
@@ -93,6 +95,8 @@ INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (3, 18);
 INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 18);
+INSERT INTO roles_permissions(role_id, permission_id)
+VALUES (1, 19);
 
 INSERT INTO user_role (ROLE_ID, USER_ID)
 VALUES (2, 'd12602fd-b7af-4da1-b1ca-bad8166d1fb3');
