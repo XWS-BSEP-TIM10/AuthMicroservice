@@ -24,6 +24,10 @@ public class TokenUtils {
     @Value("somesecret")
     public String SECRET;
 
+
+    @Value("1800000000")
+    private int API_KEY_EXPIRES_IN;
+
     // Period vazenja tokena - 30 minuta
     @Value("1800000")
     private int EXPIRES_IN;
@@ -34,6 +38,9 @@ public class TokenUtils {
     // Naziv headera kroz koji ce se prosledjivati JWT u komunikaciji server-klijent
     @Value("Authorization")
     private String AUTH_HEADER;
+
+    @Value("DislinktAuth")
+    private String DISLINKT_AUTH_HEADER;
 
     // Moguce je generisati JWT za razlicite klijente (npr. web i mobilni klijenti nece imati isto trajanje JWT, 
     // JWT za mobilne klijente ce trajati duze jer se mozda aplikacija redje koristi na taj nacin)
@@ -56,6 +63,8 @@ public class TokenUtils {
      * @param username Korisničko ime korisnika kojem se token izdaje
      * @return JWT token
      */
+
+
     public String generateToken(String role, String id, Boolean isRefreshToken) {
         return Jwts.builder()
                 .setIssuer(APP_NAME)
@@ -65,7 +74,18 @@ public class TokenUtils {
                 .setIssuedAt(new Date())
                 .setExpiration(generateExpirationDate(isRefreshToken))
                 .signWith(SIGNATURE_ALGORITHM, SECRET).compact();
+    }
 
+    public String generateAPIToken(String role, String id, String userId, Boolean isRefreshToken) {
+        return Jwts.builder()
+                .setIssuer(APP_NAME)
+                .setSubject(id)
+                .claim("role", role)
+                .claim("userId", userId)
+                .setAudience(generateAudience())
+                .setIssuedAt(new Date())
+                .setExpiration(generateAPITokenExpirationDate())
+                .signWith(SIGNATURE_ALGORITHM, SECRET).compact();
     }
 
     /**
@@ -96,7 +116,7 @@ public class TokenUtils {
      * @return Datum do kojeg je JWT validan.
      */
     private Date generateExpirationDate(Boolean isRefreshToken) {
-    	Date date;
+        Date date;
         if (isRefreshToken.equals(true)) {
             date = new Date(new Date().getTime() + REFRESH_EXPIRES_IN);
         } else {
@@ -104,6 +124,12 @@ public class TokenUtils {
         }
         return date;
     }
+
+
+    private Date generateAPITokenExpirationDate() {
+        return new Date(new Date().getTime() + API_KEY_EXPIRES_IN);
+    }
+
 
     // =================================================================
 
@@ -125,6 +151,14 @@ public class TokenUtils {
             return authHeader.substring(7); // preuzimamo samo token (vrednost tokena je nakon "Bearer " prefiksa)
         }
 
+        return null;
+    }
+
+    public String getAPIToken(HttpServletRequest request) {
+        String authHeader = getDislinktAuthHeader(request);
+        if (authHeader != null) {
+            return authHeader;
+        }
         return null;
     }
 
@@ -283,6 +317,10 @@ public class TokenUtils {
      */
     public String getAuthHeaderFromHeader(HttpServletRequest request) {
         return request.getHeader(AUTH_HEADER);
+    }
+
+    public String getDislinktAuthHeader(HttpServletRequest request) {
+        return request.getHeader(DISLINKT_AUTH_HEADER);
     }
 
 }

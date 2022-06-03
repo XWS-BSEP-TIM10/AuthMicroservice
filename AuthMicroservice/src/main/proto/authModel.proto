@@ -74,6 +74,16 @@ message RefreshTokenProto {
   string token = 1;
 }
 
+message APITokenProto {
+  string userId = 1;
+}
+
+message APITokenResponseProto {
+  string token = 1;
+  string status = 2;
+}
+
 message TokenProto {
   string token = 1;
 }
+

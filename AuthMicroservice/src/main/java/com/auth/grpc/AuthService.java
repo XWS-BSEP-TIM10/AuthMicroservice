@@ -2,13 +2,33 @@ package com.auth.grpc;
 
 import com.auth.dto.NewUserDTO;
 import com.auth.dto.TokenDTO;
-import com.auth.exception.*;
+import com.auth.exception.EmailAlreadyExistsException;
+import com.auth.exception.PasswordsNotMatchingException;
+import com.auth.exception.RepeatedPasswordNotMatchingException;
+import com.auth.exception.TokenExpiredException;
+import com.auth.exception.UserAlreadyExistsException;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.service.AuthenticationService;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
-import proto.*;
+import proto.APITokenProto;
+import proto.APITokenResponseProto;
+import proto.AuthGrpcServiceGrpc;
+import proto.ChangePasswordProto;
+import proto.ChangePasswordResponseProto;
+import proto.LoginProto;
+import proto.LoginResponseProto;
+import proto.NewUserProto;
+import proto.NewUserResponseProto;
+import proto.RecoveryPasswordProto;
+import proto.RecoveryPasswordResponseProto;
+import proto.RefreshTokenProto;
+import proto.SendTokenProto;
+import proto.SendTokenResponseProto;
+import proto.TokenProto;
+import proto.VerifyAccountProto;
+import proto.VerifyAccountResponseProto;
 
 @GrpcService
 public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
@@ -37,7 +57,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
                 responseProto = NewUserResponseProto.newBuilder().setId(response.getId()).setStatus("Status 200").build();
         } catch (UserAlreadyExistsException e) {
             responseProto = NewUserResponseProto.newBuilder().setId("").setStatus("Status 409").build();
-        } catch(EmailAlreadyExistsException e){
+        } catch (EmailAlreadyExistsException e) {
             responseProto = NewUserResponseProto.newBuilder().setId("").setStatus("Status 418").build();
         }
 
@@ -60,12 +80,25 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
     }
 
     @Override
+    public void generateAPIToken(APITokenProto request, StreamObserver<APITokenResponseProto> responseObserver) {
+        APITokenResponseProto responseProto;
+        try {
+            String token = authenticationService.generateAPIToken(request.getUserId());
+            responseProto = APITokenResponseProto.newBuilder().setToken(token).setStatus("Status 200").build();
+        } catch (Exception ex) {
+            responseProto = APITokenResponseProto.newBuilder().setToken("").setStatus("Status 400").build();
+        }
+        responseObserver.onNext(responseProto);
+        responseObserver.onCompleted();
+    }
+
+    @Override
     public void verifyUserAccount(VerifyAccountProto request, StreamObserver<VerifyAccountResponseProto> responseObserver) {
         VerifyAccountResponseProto responseProto;
         try {
             String username = authenticationService.verifyUserAccount(request.getVerificationToken());
             responseProto = VerifyAccountResponseProto.newBuilder().setUsername(username).setStatus("Status 200").build();
-        }catch(TokenExpiredException ex) {
+        } catch (TokenExpiredException ex) {
             responseProto = VerifyAccountResponseProto.newBuilder().setUsername("").setStatus("Status 400").build();
         }
 
@@ -98,9 +131,9 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
 
         boolean accomplished = authenticationService.recoverAccount(request.getId(), request.getEmail());
 
-        if(accomplished){
+        if (accomplished) {
             responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 200").build();
-        }else{
+        } else {
             responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 400").build();
         }
 
@@ -114,7 +147,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
 
         RecoveryPasswordResponseProto responseProto = null;
 
-        try{
+        try {
             authenticationService.changePasswordRecovery(request.getPassword(), request.getRepeatedPassword(), request.getToken());
             responseProto = RecoveryPasswordResponseProto.newBuilder().setStatus("Status 200").build();
         } catch (RepeatedPasswordNotMatchingException e) {
@@ -127,7 +160,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         responseObserver.onCompleted();
 
     }
-    
+
     @Override
     public void generateTokenPasswordless(SendTokenProto request, StreamObserver<SendTokenResponseProto> responseObserver) {
 
@@ -135,9 +168,9 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
 
         boolean accomplished = authenticationService.generateTokenPasswordless(request.getId(), request.getEmail());
 
-        if(accomplished){
+        if (accomplished) {
             responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 200").build();
-        }else{
+        } else {
             responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 400").build();
         }
 
@@ -145,7 +178,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         responseObserver.onCompleted();
 
     }
-    
+
     @Override
     public void passwordlessLogin(VerifyAccountProto request, StreamObserver<LoginResponseProto> responseObserver) {
         LoginResponseProto responseProto;
@@ -159,7 +192,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         responseObserver.onNext(responseProto);
         responseObserver.onCompleted();
     }
-    
+
     @Override
     public void refreshToken(RefreshTokenProto request, StreamObserver<LoginResponseProto> responseObserver) {
         LoginResponseProto responseProto;
@@ -173,20 +206,19 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         responseObserver.onNext(responseProto);
         responseObserver.onCompleted();
     }
-    
+
     @Override
     public void checkToken(TokenProto request, StreamObserver<SendTokenResponseProto> responseObserver) {
-    		SendTokenResponseProto responseProto;
-      
-            Boolean isValid = authenticationService.checkToken(request.getToken());
-            if(isValid) responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 200").build();
-            else      responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 404").build();
-            
-        
+        SendTokenResponseProto responseProto;
+
+        Boolean isValid = authenticationService.checkToken(request.getToken());
+        if (isValid) responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 200").build();
+        else responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 404").build();
+
 
         responseObserver.onNext(responseProto);
         responseObserver.onCompleted();
     }
-    
-    
+
+
 }
