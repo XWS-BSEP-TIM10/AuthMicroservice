@@ -24,12 +24,12 @@ public class EmailServiceImpl implements EmailService {
     @Async
     @Override
     public void sendEmail(String userEmail, String subject, String body) {
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(userEmail);
-        mailMessage.setSubject(subject);
-        mailMessage.setFrom(env.getProperty("spring.mail.username"));
-        mailMessage.setText(body);
-
-        javaMailSender.send(mailMessage);
+//        SimpleMailMessage mailMessage = new SimpleMailMessage();
+//        mailMessage.setTo(userEmail);
+//        mailMessage.setSubject(subject);
+//        mailMessage.setFrom(env.getProperty("spring.mail.username"));
+//        mailMessage.setText(body);
+//
+//        javaMailSender.send(mailMessage);
     }
 }
