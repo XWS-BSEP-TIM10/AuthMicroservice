@@ -7,6 +7,7 @@ import com.auth.exception.PasswordsNotMatchingException;
 import com.auth.exception.RepeatedPasswordNotMatchingException;
 import com.auth.exception.TokenExpiredException;
 import com.auth.exception.UserAlreadyExistsException;
+import com.auth.model.User;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 
 public interface AuthenticationService {
@@ -17,7 +18,7 @@ public interface AuthenticationService {
 
     boolean recoverAccount(String email, String id);
 
-    void changePasswordRecovery(String newPassword, String repeatedNewPassword, String token) throws RepeatedPasswordNotMatchingException, TokenExpiredException;
+    User changePasswordRecovery(String newPassword, String repeatedNewPassword, String token) throws RepeatedPasswordNotMatchingException, TokenExpiredException;
 
     TokenDTO login(String username, String password);
 
@@ -27,7 +28,7 @@ public interface AuthenticationService {
 
     TokenDTO passwordlessSignIn(String token) throws TokenExpiredException;
 
-    public boolean generateTokenPasswordless(String id, String email);
+    boolean generateTokenPasswordless(String id, String email);
 
     TokenDTO refreshToken(String token);
 

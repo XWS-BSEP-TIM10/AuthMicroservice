@@ -48,6 +48,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final VerificationTokenService verificationTokenService;
     private final EmailService emailService;
+    private final LoggerServiceImpl loggerService;
     private final int REGISTRATION_TOKEN_EXPIRES = 60;
     private final int RECOVERY_TOKEN_EXPIRES = 60;
 
@@ -60,6 +61,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.passwordEncoder = passwordEncoder;
         this.verificationTokenService = verificationTokenService;
         this.emailService = emailService;
+        this.loggerService = new LoggerServiceImpl(this.getClass());
     }
 
 
@@ -199,30 +201,32 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public void changePasswordRecovery(String newPassword, String repeatedNewPassword, String token) throws RepeatedPasswordNotMatchingException, TokenExpiredException {
-        if (!newPassword.equals(repeatedNewPassword)) {
-            throw new RepeatedPasswordNotMatchingException();
-        }
+    public User changePasswordRecovery(String newPassword, String repeatedNewPassword, String token) throws RepeatedPasswordNotMatchingException, TokenExpiredException {
 
         VerificationToken verificationToken = verificationTokenService.findVerificationTokenByToken(token);
 
         if (verificationToken == null) {
             throw new TokenExpiredException();
         }
+
         User user = userService.findByUsername(verificationToken.getUser().getUsername());
+
+        if (!newPassword.equals(repeatedNewPassword)) {
+            loggerService.passwordRecoverFailed("Repeated password not matching!", user.getId());
+            throw new RepeatedPasswordNotMatchingException();
+        }
 
         verificationTokenService.delete(verificationToken);
 
         if (getDifferenceInMinutes(verificationToken) >= RECOVERY_TOKEN_EXPIRES) throw new TokenExpiredException();
 
         user.setPassword(passwordEncoder.encode(newPassword));
-        userService.save(user);
+        return userService.save(user);
     }
 
     private long getDifferenceInMinutes(VerificationToken verificationToken) {
         LocalDateTime tokenCreated = LocalDateTime.ofInstant(verificationToken.getCreatedDateTime().toInstant(), ZoneId.systemDefault());
-        Long differenceInMinutes = ChronoUnit.MINUTES.between(tokenCreated, LocalDateTime.now());
-        return differenceInMinutes;
+        return ChronoUnit.MINUTES.between(tokenCreated, LocalDateTime.now());
     }
 
     @Override
@@ -241,6 +245,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 user.getUsername(), null, user.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        loggerService.passwordlessLoginSuccess(user.getId());
         return new TokenDTO(getToken(user), getRefreshToken(user));
 
     }
@@ -267,9 +272,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public Boolean checkToken(String token) {
         VerificationToken verificationToken = verificationTokenService.findVerificationTokenByToken(token);
-        if (verificationToken == null || getDifferenceInMinutes(verificationToken) >= RECOVERY_TOKEN_EXPIRES)
-            return false;
-        return true;
+        return verificationToken != null && getDifferenceInMinutes(verificationToken) < RECOVERY_TOKEN_EXPIRES;
     }
 
     @Override
@@ -277,7 +280,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         VerificationToken verificationToken = verificationTokenService.findVerificationTokenByUser(id);
         if (verificationToken == null) return false;
         verificationTokenService.delete(verificationToken);
-        if (userService.findById(id) != null && !userService.findById(id).isActivated()) return true;
-        return false;
+        return userService.findById(id) != null && !userService.findById(id).isActivated();
     }
 }

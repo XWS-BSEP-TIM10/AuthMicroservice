@@ -7,6 +7,7 @@ import com.auth.exception.PasswordsNotMatchingException;
 import com.auth.exception.RepeatedPasswordNotMatchingException;
 import com.auth.exception.TokenExpiredException;
 import com.auth.exception.UserAlreadyExistsException;
+import com.auth.model.User;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.service.AuthenticationService;
 import com.auth.service.impl.LoggerServiceImpl;
@@ -148,11 +149,10 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
     //----------------------------
     @Override
     public void changePasswordRecovery(RecoveryPasswordProto request, StreamObserver<RecoveryPasswordResponseProto> responseObserver) {
-
-        RecoveryPasswordResponseProto responseProto = null;
-
+        RecoveryPasswordResponseProto responseProto;
         try {
-            authenticationService.changePasswordRecovery(request.getPassword(), request.getRepeatedPassword(), request.getToken());
+            User user = authenticationService.changePasswordRecovery(request.getPassword(), request.getRepeatedPassword(), request.getToken());
+            loggerService.passwordRecovered(user.getId());
             responseProto = RecoveryPasswordResponseProto.newBuilder().setStatus("Status 200").build();
         } catch (RepeatedPasswordNotMatchingException e) {
             responseProto = RecoveryPasswordResponseProto.newBuilder().setStatus("Status 400").build();
@@ -162,19 +162,17 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
 
         responseObserver.onNext(responseProto);
         responseObserver.onCompleted();
-
     }
 
     @Override
     public void generateTokenPasswordless(SendTokenProto request, StreamObserver<SendTokenResponseProto> responseObserver) {
-
         SendTokenResponseProto responseProto;
-
         boolean accomplished = authenticationService.generateTokenPasswordless(request.getId(), request.getEmail());
-
         if (accomplished) {
+            loggerService.passwordlessTokenGenerated(request.getId());
             responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 200").build();
         } else {
+            loggerService.passwordlessTokenGeneratingFailed("User not found", request.getId());
             responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 400").build();
         }
 
@@ -218,7 +216,6 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         Boolean isValid = authenticationService.checkToken(request.getToken());
         if (isValid) responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 200").build();
         else responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 404").build();
-
 
         responseObserver.onNext(responseProto);
         responseObserver.onCompleted();
