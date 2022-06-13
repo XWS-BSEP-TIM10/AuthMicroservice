@@ -11,6 +11,58 @@ public class LoggerServiceImpl {
     }
 
 
+    public void userSignedUp(String id) {
+        logger.info("New user successfully signed up. User ID: {}", id);
+    }
+
+    public void userSigningUpFailed(String message) {
+        logger.warn("New user signing up failed: {}. ID: {}", message);
+    }
+
+    public void loginSuccess(String username) {
+        logger.info("Login successful. Username: {}", username);
+    }
+
+    public void loginFailed(String username) {
+        logger.warn("Login failed. Username: {}", username);
+    }
+
+    public void generateAPITokenSuccess(String id) {
+        logger.info("Generated API token successfully. User ID: {}", id);
+    }
+
+    public void generateAPITokenFailed(String id) {
+        logger.warn("Generated API token unsuccessfully. User ID: {}", id);
+    }
+
+
+    public void accountConfirmed(String username) {
+        logger.info("Account confirmed successfully. Username: {}", username);
+    }
+
+
+    public void accountConfirmedFailedTokenExpired(String token) {
+        logger.warn("Failed to confirm account, token {} expired.", token);
+    }
+
+    public void passwordChanged(String id) {
+        logger.info("Password successfully changed. User ID: {}", id);
+    }
+
+    public void passwordChangingFailed(String message, String id) {
+        logger.warn("Password changing failed: {}. User ID: {}", message, id);
+    }
+
+
+    public void accountRecovered(String id) {
+        logger.info("Account recovered successfully. User ID: {}", id);
+    }
+
+    public void accountRecoverFailed(String id) {
+        logger.warn("Account recover failed. User ID: {}", id);
+    }
+
+
     //--------------------------------------------------------------------------------------------------
 
     public void passwordRecovered(String userId) {
@@ -26,7 +78,7 @@ public class LoggerServiceImpl {
     }
 
     public void passwordlessTokenGeneratingFailed(String message, String userId) {
-        logger.warn("Passwordless token generation failed: {}. User id: {}", message, userId) ;
+        logger.warn("Passwordless token generation failed: {}. User id: {}", message, userId);
     }
 
     public void passwordlessLoginSuccess(String userId) {

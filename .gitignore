@@ -1,6 +1,8 @@
 # Compiled class file
 *.class
 
+AuthMicroservice/logs
+
 # Log file
 *.log
 
