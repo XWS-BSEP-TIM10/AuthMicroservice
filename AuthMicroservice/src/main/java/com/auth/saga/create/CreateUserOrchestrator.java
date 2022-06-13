@@ -3,7 +3,6 @@ package com.auth.saga.create;
 import com.auth.dto.ConnectionsRegisterDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.exception.WorkflowException;
-import com.auth.grpc.AuthService;
 import com.auth.model.Role;
 import com.auth.model.User;
 import com.auth.saga.create.workflow.AuthCreateWorkflowStep;
@@ -79,7 +78,7 @@ public class CreateUserOrchestrator {
         ProfileCreateWorkflowStep profileWorkflowStep = new ProfileCreateWorkflowStep(profileClient, registerDTO);
         workflowSteps.add(profileWorkflowStep);
 
-        if(userService.findById(user.getId()) == null) {
+        if (userService.findById(user.getId()) == null) {
             ConnectionsCreateWorkflowStep connectionsWorkflowStep = new ConnectionsCreateWorkflowStep(connectionsClient, new ConnectionsRegisterDTO(registerDTO.getUuid(), registerDTO.getUsername()));
             workflowSteps.add(connectionsWorkflowStep);
         }

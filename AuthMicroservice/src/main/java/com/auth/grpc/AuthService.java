@@ -9,6 +9,7 @@ import com.auth.exception.TokenExpiredException;
 import com.auth.exception.UserAlreadyExistsException;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.service.AuthenticationService;
+import com.auth.service.impl.LoggerServiceImpl;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,10 +35,12 @@ import proto.VerifyAccountResponseProto;
 public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
 
     private final AuthenticationService authenticationService;
+    private final LoggerServiceImpl loggerService;
 
     @Autowired
     public AuthService(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
+        this.loggerService = new LoggerServiceImpl(this.getClass());
     }
 
     @Override
@@ -142,6 +145,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
 
     }
 
+    //----------------------------
     @Override
     public void changePasswordRecovery(RecoveryPasswordProto request, StreamObserver<RecoveryPasswordResponseProto> responseObserver) {
 
