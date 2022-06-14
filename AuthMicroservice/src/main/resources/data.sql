@@ -7,16 +7,16 @@ VALUES (2, 'ROLE_ADMIN');
 INSERT INTO role (ID, NAME)
 VALUES (3, 'ROLE_AGENT');
 
-INSERT INTO users (ID, PASSWORD, USERNAME, ACTIVATED)
-VALUES ('d12602fd-b7af-4da1-b1ca-bad8166d1fb3', '$2a$10$28MUwyYgna28OIxoUnE7VOpjby0JRJUU0WQV0UZdMX5XA46XAvBCK', 'username2', true);
-INSERT INTO users (ID, PASSWORD, USERNAME, ACTIVATED)
-VALUES ('d12602fd-b7af-4da1-b1ca-bad8166d1fb2', '$2a$10$28MUwyYgna28OIxoUnE7VOpjby0JRJUU0WQV0UZdMX5XA46XAvBCK', 'username1', true);
-INSERT INTO users (ID, PASSWORD, USERNAME, ACTIVATED)
-VALUES ('d12602fd-b7af-4da1-b1ca-bad8166d1fb4', '$2a$10$28MUwyYgna28OIxoUnE7VOpjby0JRJUU0WQV0UZdMX5XA46XAvBCK', 'username3', true);
+INSERT INTO users (ID, PASSWORD, USERNAME, ACTIVATED, SECRET, IS_USING_2FA)
+VALUES ('d12602fd-b7af-4da1-b1ca-bad8166d1fb3', '$2a$10$28MUwyYgna28OIxoUnE7VOpjby0JRJUU0WQV0UZdMX5XA46XAvBCK', 'username2', true, 'QDWSM3OYBPGTEVSPB5FKVDM3CSNCWHVK', false);
+INSERT INTO users (ID, PASSWORD, USERNAME, ACTIVATED, SECRET, IS_USING_2FA)
+VALUES ('d12602fd-b7af-4da1-b1ca-bad8166d1fb2', '$2a$10$28MUwyYgna28OIxoUnE7VOpjby0JRJUU0WQV0UZdMX5XA46XAvBCK', 'username1', true, 'QDWSM3OYBPGTEVSPB5FKVDM3CSNCWHVK', true);
+INSERT INTO users (ID, PASSWORD, USERNAME, ACTIVATED, SECRET, IS_USING_2FA)
+VALUES ('d12602fd-b7af-4da1-b1ca-bad8166d1fb4', '$2a$10$28MUwyYgna28OIxoUnE7VOpjby0JRJUU0WQV0UZdMX5XA46XAvBCK', 'username3', true, 'QDWSM3OYBPGTEVSPB5FKVDM3CSNCWHVK', false);
 
 
-INSERT INTO users (ID, PASSWORD, USERNAME, ACTIVATED)
-VALUES ('d12602fd-b7af-4da1-b1ca-bad8166d1fb5', 'fgdgfhgfdhdfghfdghdfdfdfdfddfg', 'agent', true);
+INSERT INTO users (ID, PASSWORD, USERNAME, ACTIVATED, SECRET, IS_USING_2FA)
+VALUES ('d12602fd-b7af-4da1-b1ca-bad8166d1fb5', 'fgdgfhgfdhdfghfdghdfdfdfdfddfg', 'agent', true, 'QDWSM3OYBPGTEVSPB5FKVDM3CSNCWHVK', false);
 
 INSERT INTO permission(id, name)
 VALUES (1, 'CHANGE_PASSWORD_PERMISSION');
@@ -56,6 +56,8 @@ INSERT INTO permission(id, name)
 VALUES (18, 'CREATE_JOB_AD');
 INSERT INTO permission(id, name)
 VALUES (19, 'GET_JOB_ADS');
+INSERT INTO permission(id, name)
+VALUES (20, 'UPDATE_2FA_STATUS');
 
 INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 1);
@@ -99,6 +101,10 @@ INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 18);
 INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 19);
+INSERT INTO roles_permissions(role_id, permission_id)
+VALUES (1, 20);
+INSERT INTO roles_permissions(role_id, permission_id)
+VALUES (2, 20);
 
 INSERT INTO user_role (ROLE_ID, USER_ID)
 VALUES (2, 'd12602fd-b7af-4da1-b1ca-bad8166d1fb3');

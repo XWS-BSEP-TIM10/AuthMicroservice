@@ -36,4 +36,5 @@ public interface AuthenticationService {
 
     String generateAPIToken(String userId);
 
+    String change2FAStatus(String userId, boolean enable2FA);
 }

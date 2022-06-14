@@ -16,4 +16,5 @@ service AuthGrpcService{
   rpc refreshToken (RefreshTokenProto) returns (LoginResponseProto);
   rpc checkToken (TokenProto) returns (SendTokenResponseProto);
   rpc generateAPIToken(APITokenProto) returns (APITokenResponseProto);
+  rpc change2FAStatus(Change2FAStatusProto) returns (Change2FAStatusResponseProto);
 }

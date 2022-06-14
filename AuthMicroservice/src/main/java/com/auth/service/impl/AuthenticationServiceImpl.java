@@ -81,6 +81,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     }
 
+    @Override
+    public String change2FAStatus(String userId, boolean enableFA) {
+        return userService.change2FAStatus(userId, enableFA);
+    }
+
     @Transactional
     @Override
     public OrchestratorResponseDTO signUp(NewUserDTO newUserDTO) throws UserAlreadyExistsException, EmailAlreadyExistsException {

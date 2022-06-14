@@ -17,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import proto.APITokenProto;
 import proto.APITokenResponseProto;
 import proto.AuthGrpcServiceGrpc;
+import proto.Change2FAStatusProto;
+import proto.Change2FAStatusResponseProto;
 import proto.ChangePasswordProto;
 import proto.ChangePasswordResponseProto;
 import proto.LoginProto;
@@ -233,6 +235,19 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         if (isValid) responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 200").build();
         else responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 404").build();
 
+        responseObserver.onNext(responseProto);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void change2FAStatus(Change2FAStatusProto request, StreamObserver<Change2FAStatusResponseProto> responseObserver) {
+        Change2FAStatusResponseProto responseProto;
+        try {
+            String secret = authenticationService.change2FAStatus(request.getUserId(), request.getEnable2FA());
+            responseProto = Change2FAStatusResponseProto.newBuilder().setSecret(secret).setStatus("Status 200").build();
+        } catch (Exception e) {
+            responseProto = Change2FAStatusResponseProto.newBuilder().setStatus("Status 404").build();
+        }
         responseObserver.onNext(responseProto);
         responseObserver.onCompleted();
     }
