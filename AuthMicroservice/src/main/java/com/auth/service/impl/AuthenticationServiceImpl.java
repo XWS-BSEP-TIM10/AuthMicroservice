@@ -3,11 +3,7 @@ package com.auth.service.impl;
 import com.auth.dto.NewUserDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.dto.TokenDTO;
-import com.auth.exception.EmailAlreadyExistsException;
-import com.auth.exception.PasswordsNotMatchingException;
-import com.auth.exception.RepeatedPasswordNotMatchingException;
-import com.auth.exception.TokenExpiredException;
-import com.auth.exception.UserAlreadyExistsException;
+import com.auth.exception.*;
 import com.auth.model.Role;
 import com.auth.model.User;
 import com.auth.model.VerificationToken;
@@ -19,6 +15,9 @@ import com.auth.service.EmailService;
 import com.auth.service.RoleService;
 import com.auth.service.UserService;
 import com.auth.service.VerificationTokenService;
+import de.taimos.totp.TOTP;
+import org.apache.commons.codec.binary.Base32;
+import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -66,12 +65,24 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
 
     @Override
-    public TokenDTO login(String username, String password) {
+    public TokenDTO login(String username, String password, String code) {
+        User user = userService.findByUsername(username);
+
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 username, password));
+
+        if (user.isUsing2FA() && (code == null || !code.equals(getTOTPCode(user.getSecret())))) {
+            throw new CodeNotMatchingException();
+        }
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        User user = (User) authentication.getPrincipal();
         return new TokenDTO(getToken(user), getRefreshToken(user));
+    }
+
+    private String getTOTPCode(String secretKey) {
+        Base32 base32 = new Base32();
+        byte[] bytes = base32.decode(secretKey);
+        String hexKey = Hex.encodeHexString(bytes);
+        return TOTP.getOTP(hexKey);
     }
 
     @Override
@@ -84,6 +95,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public String change2FAStatus(String userId, boolean enableFA) {
         return userService.change2FAStatus(userId, enableFA);
+    }
+
+    @Override
+    public boolean checkTwoFaStatus(String userId) {
+        User user = userService.findById(userId);
+        if(user == null) throw new UserNotFoundException();
+        return user.isUsing2FA();
     }
 
     @Transactional

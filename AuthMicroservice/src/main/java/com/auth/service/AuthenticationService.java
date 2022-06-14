@@ -20,7 +20,7 @@ public interface AuthenticationService {
 
     User changePasswordRecovery(String newPassword, String repeatedNewPassword, String token) throws RepeatedPasswordNotMatchingException, TokenExpiredException;
 
-    TokenDTO login(String username, String password);
+    TokenDTO login(String username, String password, String code);
 
     OrchestratorResponseDTO signUp(NewUserDTO newUserDTO) throws UserAlreadyExistsException, EmailAlreadyExistsException;
 
@@ -37,4 +37,6 @@ public interface AuthenticationService {
     String generateAPIToken(String userId);
 
     String change2FAStatus(String userId, boolean enable2FA);
+
+    boolean checkTwoFaStatus(String userId);
 }

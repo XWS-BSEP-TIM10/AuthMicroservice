@@ -2,11 +2,7 @@ package com.auth.grpc;
 
 import com.auth.dto.NewUserDTO;
 import com.auth.dto.TokenDTO;
-import com.auth.exception.EmailAlreadyExistsException;
-import com.auth.exception.PasswordsNotMatchingException;
-import com.auth.exception.RepeatedPasswordNotMatchingException;
-import com.auth.exception.TokenExpiredException;
-import com.auth.exception.UserAlreadyExistsException;
+import com.auth.exception.*;
 import com.auth.model.User;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.service.AuthenticationService;
@@ -14,25 +10,12 @@ import com.auth.service.impl.LoggerServiceImpl;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
-import proto.APITokenProto;
-import proto.APITokenResponseProto;
-import proto.AuthGrpcServiceGrpc;
-import proto.Change2FAStatusProto;
-import proto.Change2FAStatusResponseProto;
-import proto.ChangePasswordProto;
-import proto.ChangePasswordResponseProto;
-import proto.LoginProto;
-import proto.LoginResponseProto;
-import proto.NewUserProto;
-import proto.NewUserResponseProto;
-import proto.RecoveryPasswordProto;
-import proto.RecoveryPasswordResponseProto;
-import proto.RefreshTokenProto;
-import proto.SendTokenProto;
-import proto.SendTokenResponseProto;
-import proto.TokenProto;
-import proto.VerifyAccountProto;
-import proto.VerifyAccountResponseProto;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.PathVariable;
+import proto.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 @GrpcService
 public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
@@ -80,9 +63,11 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
     public void login(LoginProto request, StreamObserver<LoginResponseProto> responseObserver) {
         LoginResponseProto responseProto;
         try {
-            TokenDTO tokenDTO = authenticationService.login(request.getUsername(), request.getPassword());
+            TokenDTO tokenDTO = authenticationService.login(request.getUsername(), request.getPassword(), request.getCode());
             loggerService.loginSuccess(request.getUsername());
             responseProto = LoginResponseProto.newBuilder().setJwt(tokenDTO.getJwt()).setRefreshToken(tokenDTO.getRefreshToken()).setStatus("Status 200").build();
+        } catch (CodeNotMatchingException codeNotMatchingException) {
+            responseProto = LoginResponseProto.newBuilder().setJwt("").setStatus("Status 300").build();
         } catch (Exception ex) {
             loggerService.loginFailed(request.getUsername());
             responseProto = LoginResponseProto.newBuilder().setJwt("").setStatus("Status 400").build();
@@ -247,6 +232,19 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
             responseProto = Change2FAStatusResponseProto.newBuilder().setSecret(secret).setStatus("Status 200").build();
         } catch (Exception e) {
             responseProto = Change2FAStatusResponseProto.newBuilder().setStatus("Status 404").build();
+        }
+        responseObserver.onNext(responseProto);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void check2FAStatus(TwoFAStatusProto request, StreamObserver<TwoFAStatusResponseProto> responseObserver) {
+        TwoFAStatusResponseProto responseProto;
+        try {
+            boolean twoFAEnabled = authenticationService.checkTwoFaStatus(request.getUserId());
+            responseProto = TwoFAStatusResponseProto.newBuilder().setEnabled2FA(twoFAEnabled).setStatus("Status 200").build();
+        } catch (UserNotFoundException ex) {
+            responseProto = TwoFAStatusResponseProto.newBuilder().setStatus("Status 404").build();
         }
         responseObserver.onNext(responseProto);
         responseObserver.onCompleted();
