@@ -53,7 +53,6 @@ public class LoggerServiceImpl {
         logger.warn("Password changing failed: {}. User ID: {}", message, id);
     }
 
-
     public void accountRecovered(String id) {
         logger.info("Account recovered successfully. User ID: {}", id);
     }
@@ -61,9 +60,6 @@ public class LoggerServiceImpl {
     public void accountRecoverFailed(String id) {
         logger.warn("Account recover failed. User ID: {}", id);
     }
-
-
-    //--------------------------------------------------------------------------------------------------
 
     public void passwordRecovered(String userId) {
         logger.info("Password recovered successfully. User id: {}", userId);
@@ -83,5 +79,25 @@ public class LoggerServiceImpl {
 
     public void passwordlessLoginSuccess(String userId) {
         logger.info("Passwordless login successful. User id: {}.", userId);
+    }
+
+    public void login2FAFailedCodeNotMatching(String username) {
+        logger.warn("Two-factor login failed, invalid code. Username: {}", username);
+    }
+
+    public void twoFAStatusChanged(boolean enable2FA, String username) {
+        logger.info("Two-factor authentication status changed on: {}. Username: {}", enable2FA, username);
+    }
+
+    public void twoFAStatusChangeFailed(boolean enable2FA, String username) {
+        logger.warn("Two-factor authentication status changing on: {} failed. Username: {}", enable2FA, username);
+    }
+
+    public void twoFAStatusCheck(String username) {
+        logger.info("Two-factor authentication status check done. Username: {}", username);
+    }
+
+    public void two2FACheckFailed(String username) {
+        logger.warn("Checking two-factor status failed. Username: {}", username);
     }
 }
