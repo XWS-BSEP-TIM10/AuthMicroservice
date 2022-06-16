@@ -24,6 +24,7 @@ message NewUserResponseProto{
 message LoginProto {
   string username = 1;
   string password = 2;
+  string code = 3;
 }
 
 message  LoginResponseProto {
@@ -87,3 +88,22 @@ message TokenProto {
   string token = 1;
 }
 
+
+message Change2FAStatusProto {
+  string userId = 1;
+  bool enable2FA = 2;
+}
+
+message Change2FAStatusResponseProto {
+  string secret = 1;
+  string status = 2;
+}
+
+message TwoFAStatusProto {
+  string userId = 1;
+}
+
+message TwoFAStatusResponseProto {
+  bool enabled2FA = 1;
+  string status = 2;
+}

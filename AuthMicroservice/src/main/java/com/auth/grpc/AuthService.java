@@ -2,34 +2,20 @@ package com.auth.grpc;
 
 import com.auth.dto.NewUserDTO;
 import com.auth.dto.TokenDTO;
-import com.auth.exception.EmailAlreadyExistsException;
-import com.auth.exception.PasswordsNotMatchingException;
-import com.auth.exception.RepeatedPasswordNotMatchingException;
-import com.auth.exception.TokenExpiredException;
-import com.auth.exception.UserAlreadyExistsException;
+import com.auth.exception.*;
+import com.auth.model.User;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.service.AuthenticationService;
 import com.auth.service.impl.LoggerServiceImpl;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
-import proto.APITokenProto;
-import proto.APITokenResponseProto;
-import proto.AuthGrpcServiceGrpc;
-import proto.ChangePasswordProto;
-import proto.ChangePasswordResponseProto;
-import proto.LoginProto;
-import proto.LoginResponseProto;
-import proto.NewUserProto;
-import proto.NewUserResponseProto;
-import proto.RecoveryPasswordProto;
-import proto.RecoveryPasswordResponseProto;
-import proto.RefreshTokenProto;
-import proto.SendTokenProto;
-import proto.SendTokenResponseProto;
-import proto.TokenProto;
-import proto.VerifyAccountProto;
-import proto.VerifyAccountResponseProto;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.PathVariable;
+import proto.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 @GrpcService
 public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
@@ -54,13 +40,18 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
             newUserDTO.setId(request.getId());
             OrchestratorResponseDTO response = authenticationService.signUp(newUserDTO);
 
-            if (!response.getSuccess())
+            if (!response.getSuccess()) {
+                loggerService.userSigningUpFailed("User signup failed");
                 responseProto = NewUserResponseProto.newBuilder().setId(response.getId()).setStatus("Status 500").build();
-            else
+            } else {
+                loggerService.userSignedUp(response.getId());
                 responseProto = NewUserResponseProto.newBuilder().setId(response.getId()).setStatus("Status 200").build();
+            }
         } catch (UserAlreadyExistsException e) {
+            loggerService.userSigningUpFailed("User signup failed, user already exists");
             responseProto = NewUserResponseProto.newBuilder().setId("").setStatus("Status 409").build();
         } catch (EmailAlreadyExistsException e) {
+            loggerService.userSigningUpFailed("User signup failed, email already exists");
             responseProto = NewUserResponseProto.newBuilder().setId("").setStatus("Status 418").build();
         }
 
@@ -72,9 +63,14 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
     public void login(LoginProto request, StreamObserver<LoginResponseProto> responseObserver) {
         LoginResponseProto responseProto;
         try {
-            TokenDTO tokenDTO = authenticationService.login(request.getUsername(), request.getPassword());
+            TokenDTO tokenDTO = authenticationService.login(request.getUsername(), request.getPassword(), request.getCode());
+            loggerService.loginSuccess(request.getUsername());
             responseProto = LoginResponseProto.newBuilder().setJwt(tokenDTO.getJwt()).setRefreshToken(tokenDTO.getRefreshToken()).setStatus("Status 200").build();
+        } catch (CodeNotMatchingException codeNotMatchingException) {
+            loggerService.login2FAFailedCodeNotMatching(request.getUsername());
+            responseProto = LoginResponseProto.newBuilder().setJwt("").setStatus("Status 300").build();
         } catch (Exception ex) {
+            loggerService.loginFailed(request.getUsername());
             responseProto = LoginResponseProto.newBuilder().setJwt("").setStatus("Status 400").build();
         }
 
@@ -87,8 +83,10 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         APITokenResponseProto responseProto;
         try {
             String token = authenticationService.generateAPIToken(request.getUserId());
+            loggerService.generateAPITokenSuccess(request.getUserId());
             responseProto = APITokenResponseProto.newBuilder().setToken(token).setStatus("Status 200").build();
         } catch (Exception ex) {
+            loggerService.generateAPITokenFailed(request.getUserId());
             responseProto = APITokenResponseProto.newBuilder().setToken("").setStatus("Status 400").build();
         }
         responseObserver.onNext(responseProto);
@@ -100,11 +98,12 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         VerifyAccountResponseProto responseProto;
         try {
             String username = authenticationService.verifyUserAccount(request.getVerificationToken());
+            loggerService.accountConfirmed(username);
             responseProto = VerifyAccountResponseProto.newBuilder().setUsername(username).setStatus("Status 200").build();
         } catch (TokenExpiredException ex) {
+            loggerService.accountConfirmedFailedTokenExpired(request.getVerificationToken());
             responseProto = VerifyAccountResponseProto.newBuilder().setUsername("").setStatus("Status 400").build();
         }
-
 
         responseObserver.onNext(responseProto);
         responseObserver.onCompleted();
@@ -116,10 +115,13 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
 
         try {
             authenticationService.changePassword(request.getUserId(), request.getOldPassword(), request.getNewPassword(), request.getRepeatedNewPassword());
+            loggerService.passwordChanged(request.getUserId());
             responseProto = ChangePasswordResponseProto.newBuilder().setStatus("Status 200").setMessage("Password changed").build();
         } catch (PasswordsNotMatchingException ex) {
+            loggerService.passwordChangingFailed("Entered password doesn't match existing", request.getUserId());
             responseProto = ChangePasswordResponseProto.newBuilder().setStatus("Status 400").setMessage(ex.getMessage()).build();
         } catch (RepeatedPasswordNotMatchingException ex) {
+            loggerService.passwordChangingFailed("Entered repeated password doesn't match", request.getUserId());
             responseProto = ChangePasswordResponseProto.newBuilder().setStatus("Status 418").setMessage(ex.getMessage()).build();
         }
 
@@ -135,8 +137,10 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         boolean accomplished = authenticationService.recoverAccount(request.getId(), request.getEmail());
 
         if (accomplished) {
+            loggerService.accountRecovered(request.getId());
             responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 200").build();
         } else {
+            loggerService.accountRecoverFailed(request.getId());
             responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 400").build();
         }
 
@@ -145,14 +149,12 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
 
     }
 
-    //----------------------------
     @Override
     public void changePasswordRecovery(RecoveryPasswordProto request, StreamObserver<RecoveryPasswordResponseProto> responseObserver) {
-
-        RecoveryPasswordResponseProto responseProto = null;
-
+        RecoveryPasswordResponseProto responseProto;
         try {
-            authenticationService.changePasswordRecovery(request.getPassword(), request.getRepeatedPassword(), request.getToken());
+            User user = authenticationService.changePasswordRecovery(request.getPassword(), request.getRepeatedPassword(), request.getToken());
+            loggerService.passwordRecovered(user.getId());
             responseProto = RecoveryPasswordResponseProto.newBuilder().setStatus("Status 200").build();
         } catch (RepeatedPasswordNotMatchingException e) {
             responseProto = RecoveryPasswordResponseProto.newBuilder().setStatus("Status 400").build();
@@ -162,19 +164,17 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
 
         responseObserver.onNext(responseProto);
         responseObserver.onCompleted();
-
     }
 
     @Override
     public void generateTokenPasswordless(SendTokenProto request, StreamObserver<SendTokenResponseProto> responseObserver) {
-
         SendTokenResponseProto responseProto;
-
         boolean accomplished = authenticationService.generateTokenPasswordless(request.getId(), request.getEmail());
-
         if (accomplished) {
+            loggerService.passwordlessTokenGenerated(request.getId());
             responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 200").build();
         } else {
+            loggerService.passwordlessTokenGeneratingFailed("User not found", request.getId());
             responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 400").build();
         }
 
@@ -219,7 +219,36 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         if (isValid) responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 200").build();
         else responseProto = SendTokenResponseProto.newBuilder().setStatus("Status 404").build();
 
+        responseObserver.onNext(responseProto);
+        responseObserver.onCompleted();
+    }
 
+    @Override
+    public void change2FAStatus(Change2FAStatusProto request, StreamObserver<Change2FAStatusResponseProto> responseObserver) {
+        Change2FAStatusResponseProto responseProto;
+        try {
+            String secret = authenticationService.change2FAStatus(request.getUserId(), request.getEnable2FA());
+            loggerService.twoFAStatusChanged(request.getEnable2FA(), SecurityContextHolder.getContext().getAuthentication().getName());
+            responseProto = Change2FAStatusResponseProto.newBuilder().setSecret(secret).setStatus("Status 200").build();
+        } catch (Exception e) {
+            loggerService.twoFAStatusChangeFailed(request.getEnable2FA(), SecurityContextHolder.getContext().getAuthentication().getName());
+            responseProto = Change2FAStatusResponseProto.newBuilder().setStatus("Status 404").build();
+        }
+        responseObserver.onNext(responseProto);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void check2FAStatus(TwoFAStatusProto request, StreamObserver<TwoFAStatusResponseProto> responseObserver) {
+        TwoFAStatusResponseProto responseProto;
+        try {
+            boolean twoFAEnabled = authenticationService.checkTwoFaStatus(request.getUserId());
+            loggerService.twoFAStatusCheck(SecurityContextHolder.getContext().getAuthentication().getName());
+            responseProto = TwoFAStatusResponseProto.newBuilder().setEnabled2FA(twoFAEnabled).setStatus("Status 200").build();
+        } catch (UserNotFoundException ex) {
+            loggerService.two2FACheckFailed(SecurityContextHolder.getContext().getAuthentication().getName());
+            responseProto = TwoFAStatusResponseProto.newBuilder().setStatus("Status 404").build();
+        }
         responseObserver.onNext(responseProto);
         responseObserver.onCompleted();
     }

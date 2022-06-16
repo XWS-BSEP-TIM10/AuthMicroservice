@@ -3,11 +3,7 @@ package com.auth.service.impl;
 import com.auth.dto.NewUserDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.dto.TokenDTO;
-import com.auth.exception.EmailAlreadyExistsException;
-import com.auth.exception.PasswordsNotMatchingException;
-import com.auth.exception.RepeatedPasswordNotMatchingException;
-import com.auth.exception.TokenExpiredException;
-import com.auth.exception.UserAlreadyExistsException;
+import com.auth.exception.*;
 import com.auth.model.Role;
 import com.auth.model.User;
 import com.auth.model.VerificationToken;
@@ -19,6 +15,9 @@ import com.auth.service.EmailService;
 import com.auth.service.RoleService;
 import com.auth.service.UserService;
 import com.auth.service.VerificationTokenService;
+import de.taimos.totp.TOTP;
+import org.apache.commons.codec.binary.Base32;
+import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -48,6 +47,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final VerificationTokenService verificationTokenService;
     private final EmailService emailService;
+    private final LoggerServiceImpl loggerService;
     private final int REGISTRATION_TOKEN_EXPIRES = 60;
     private final int RECOVERY_TOKEN_EXPIRES = 60;
 
@@ -60,16 +60,29 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.passwordEncoder = passwordEncoder;
         this.verificationTokenService = verificationTokenService;
         this.emailService = emailService;
+        this.loggerService = new LoggerServiceImpl(this.getClass());
     }
 
 
     @Override
-    public TokenDTO login(String username, String password) {
+    public TokenDTO login(String username, String password, String code) {
+        User user = userService.findByUsername(username);
+
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 username, password));
+
+        if (user.isUsing2FA() && (code == null || !code.equals(getTOTPCode(user.getSecret())))) {
+            throw new CodeNotMatchingException();
+        }
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        User user = (User) authentication.getPrincipal();
         return new TokenDTO(getToken(user), getRefreshToken(user));
+    }
+
+    private String getTOTPCode(String secretKey) {
+        Base32 base32 = new Base32();
+        byte[] bytes = base32.decode(secretKey);
+        String hexKey = Hex.encodeHexString(bytes);
+        return TOTP.getOTP(hexKey);
     }
 
     @Override
@@ -77,6 +90,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         User agent = userService.findByUsername("agent");
         return getAPIToken(agent, userId);
 
+    }
+
+    @Override
+    public String change2FAStatus(String userId, boolean enableFA) {
+        return userService.change2FAStatus(userId, enableFA);
+    }
+
+    @Override
+    public boolean checkTwoFaStatus(String userId) {
+        User user = userService.findById(userId);
+        if(user == null) throw new UserNotFoundException();
+        return user.isUsing2FA();
     }
 
     @Transactional
@@ -199,30 +224,32 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public void changePasswordRecovery(String newPassword, String repeatedNewPassword, String token) throws RepeatedPasswordNotMatchingException, TokenExpiredException {
-        if (!newPassword.equals(repeatedNewPassword)) {
-            throw new RepeatedPasswordNotMatchingException();
-        }
+    public User changePasswordRecovery(String newPassword, String repeatedNewPassword, String token) throws RepeatedPasswordNotMatchingException, TokenExpiredException {
 
         VerificationToken verificationToken = verificationTokenService.findVerificationTokenByToken(token);
 
         if (verificationToken == null) {
             throw new TokenExpiredException();
         }
+
         User user = userService.findByUsername(verificationToken.getUser().getUsername());
+
+        if (!newPassword.equals(repeatedNewPassword)) {
+            loggerService.passwordRecoverFailed("Repeated password not matching!", user.getId());
+            throw new RepeatedPasswordNotMatchingException();
+        }
 
         verificationTokenService.delete(verificationToken);
 
         if (getDifferenceInMinutes(verificationToken) >= RECOVERY_TOKEN_EXPIRES) throw new TokenExpiredException();
 
         user.setPassword(passwordEncoder.encode(newPassword));
-        userService.save(user);
+        return userService.save(user);
     }
 
     private long getDifferenceInMinutes(VerificationToken verificationToken) {
         LocalDateTime tokenCreated = LocalDateTime.ofInstant(verificationToken.getCreatedDateTime().toInstant(), ZoneId.systemDefault());
-        Long differenceInMinutes = ChronoUnit.MINUTES.between(tokenCreated, LocalDateTime.now());
-        return differenceInMinutes;
+        return ChronoUnit.MINUTES.between(tokenCreated, LocalDateTime.now());
     }
 
     @Override
@@ -241,6 +268,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 user.getUsername(), null, user.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        loggerService.passwordlessLoginSuccess(user.getId());
         return new TokenDTO(getToken(user), getRefreshToken(user));
 
     }
@@ -267,9 +295,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public Boolean checkToken(String token) {
         VerificationToken verificationToken = verificationTokenService.findVerificationTokenByToken(token);
-        if (verificationToken == null || getDifferenceInMinutes(verificationToken) >= RECOVERY_TOKEN_EXPIRES)
-            return false;
-        return true;
+        return verificationToken != null && getDifferenceInMinutes(verificationToken) < RECOVERY_TOKEN_EXPIRES;
     }
 
     @Override
@@ -277,7 +303,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         VerificationToken verificationToken = verificationTokenService.findVerificationTokenByUser(id);
         if (verificationToken == null) return false;
         verificationTokenService.delete(verificationToken);
-        if (userService.findById(id) != null && !userService.findById(id).isActivated()) return true;
-        return false;
+        return userService.findById(id) != null && !userService.findById(id).isActivated();
     }
 }

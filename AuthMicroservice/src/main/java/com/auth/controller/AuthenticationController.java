@@ -29,16 +29,10 @@ import javax.validation.Valid;
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
-    
-    private final CustomUserDetailsService customUserDetailsService;
-
-    private final EmailService emailService;
 
     @Autowired
-    public AuthenticationController(AuthenticationService authenticationService, CustomUserDetailsService customUserDetailsService, EmailService emailService) {
+    public AuthenticationController(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
-        this.customUserDetailsService = customUserDetailsService;
-        this.emailService = emailService;
     }
 
     @PostMapping("/signup")
@@ -50,24 +44,8 @@ public class AuthenticationController {
             }
 
             return new ResponseEntity<>(newUserDTO, HttpStatus.CREATED);
-        } catch (UserAlreadyExistsException e) {
-            return ResponseEntity.badRequest().build();
-        } catch(EmailAlreadyExistsException e){
+        } catch (UserAlreadyExistsException | EmailAlreadyExistsException e) {
             return ResponseEntity.badRequest().build();
         }
     }
-
-    @PostMapping(value = "/login")
-    public ResponseEntity<TokenDTO> login(@RequestBody @Valid LoginDTO loginDTO) {
-
-        try {
-            TokenDTO tokenDTO = authenticationService.login(loginDTO.getUsername(), loginDTO.getPassword());
-            return ResponseEntity.ok(tokenDTO);
-        } catch (Exception ex) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-    
- 
-
 }
