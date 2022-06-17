@@ -1,6 +1,5 @@
 package com.auth.security.util;
 
-import com.auth.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -18,40 +17,37 @@ public class TokenUtils {
 
     // Izdavac tokena
     @Value("spring-security-example")
-    private String APP_NAME;
+    private static final String APP_NAME = "spring-security-example";
 
     // Tajna koju samo backend aplikacija treba da zna kako bi mogla da generise i proveri JWT https://jwt.io/
     @Value("somesecret")
-    public String SECRET;
-
+    public static final String SECRET = "somesecret";
 
     @Value("1800000000")
-    private int API_KEY_EXPIRES_IN;
+    private static final int API_KEY_EXPIRES_IN = 1800000000;
 
     // Period vazenja tokena - 30 minuta
     @Value("1800000")
-    private int EXPIRES_IN;
+    private static final int EXPIRES_IN = 1800000;
 
     @Value("3600000")
-    private int REFRESH_EXPIRES_IN;
+    private static final int REFRESH_EXPIRES_IN = 3600000;
 
     // Naziv headera kroz koji ce se prosledjivati JWT u komunikaciji server-klijent
     @Value("Authorization")
-    private String AUTH_HEADER;
+    private static final String AUTH_HEADER = "Authorization";
 
     @Value("DislinktAuth")
-    private String DISLINKT_AUTH_HEADER;
+    private static final String DISLINKT_AUTH_HEADER = "DislinktAuth";
 
     // Moguce je generisati JWT za razlicite klijente (npr. web i mobilni klijenti nece imati isto trajanje JWT, 
     // JWT za mobilne klijente ce trajati duze jer se mozda aplikacija redje koristi na taj nacin)
     // Radi jednostavnosti primera, necemo voditi racuna o uređaju sa kojeg zahtev stiže.
-    //	private static final String AUDIENCE_MOBILE = "mobile";
-    //	private static final String AUDIENCE_TABLET = "tablet";
 
     private static final String AUDIENCE_WEB = "web";
 
     // Algoritam za potpisivanje JWT
-    private SignatureAlgorithm SIGNATURE_ALGORITHM = SignatureAlgorithm.HS512;
+    private static final SignatureAlgorithm SIGNATURE_ALGORITHM = SignatureAlgorithm.HS512;
 
 
     // ============= Funkcije za generisanje JWT tokena =============

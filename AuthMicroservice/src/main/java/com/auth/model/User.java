@@ -118,7 +118,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return activated;
+        return isActivated();
     }
 
     public boolean isUsing2FA() {
@@ -135,11 +135,9 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        Set<Permission> permissions = new HashSet<Permission>();
+        Set<Permission> permissions = new HashSet<>();
         for (Role role : this.roles) {
-            for (Permission permission : role.getPermission()) {
-                permissions.add(permission);
-            }
+            permissions.addAll(role.getPermission());
         }
         return permissions;
     }

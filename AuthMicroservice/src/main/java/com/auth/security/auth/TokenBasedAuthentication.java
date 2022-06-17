@@ -33,7 +33,7 @@ public class TokenBasedAuthentication extends AbstractAuthenticationToken {
 
 	@Override
 	public String getCredentials() {
-		return token;
+		return getToken();
 	}
 
 	@Override

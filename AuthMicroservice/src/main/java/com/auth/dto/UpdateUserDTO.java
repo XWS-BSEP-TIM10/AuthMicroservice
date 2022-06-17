@@ -6,9 +6,6 @@ public class UpdateUserDTO {
 
     private String username;
 
-    public UpdateUserDTO() {
-    }
-
     public String getId() {
         return id;
     }

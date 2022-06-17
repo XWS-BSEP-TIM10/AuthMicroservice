@@ -1,6 +1,5 @@
 package com.auth.service;
 
-import com.auth.model.User;
 import com.auth.model.VerificationToken;
 
 public interface VerificationTokenService {

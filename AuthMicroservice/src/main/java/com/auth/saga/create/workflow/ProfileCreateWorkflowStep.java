@@ -15,7 +15,7 @@ public class ProfileCreateWorkflowStep implements WorkflowStep {
     private final RegisterDTO requestDTO;
     private WorkflowStepStatus stepStatus = WorkflowStepStatus.PENDING;
 
-    private static final String uri = "api/v1/profiles";
+    private static final String URI = "api/v1/profiles";
 
     public ProfileCreateWorkflowStep(WebClient webClient, RegisterDTO requestDTO) {
         this.webClient = webClient;
@@ -30,16 +30,15 @@ public class ProfileCreateWorkflowStep implements WorkflowStep {
     @Override
     public Mono<Boolean> process() {
         stepStatus = WorkflowStepStatus.START;
-        Mono<Boolean> request = webClient
+        return webClient
                 .post()
-                .uri(uri)
+                .uri(URI)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .body(Mono.just(requestDTO), RegisterDTO.class)
                 .retrieve()
                 .bodyToMono(SagaResponseDTO.class)
                 .map(SagaResponseDTO::isSuccess)
                 .doOnNext(b -> this.stepStatus = b ? WorkflowStepStatus.COMPLETE : WorkflowStepStatus.FAILED);
-        return request;
     }
 
     @Override
@@ -49,7 +48,7 @@ public class ProfileCreateWorkflowStep implements WorkflowStep {
 
         return this.webClient
                 .delete()
-                .uri(uri + "/" + requestDTO.getUuid())
+                .uri(URI + "/" + requestDTO.getUuid())
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .retrieve()
                 .bodyToMono(SagaResponseDTO.class)

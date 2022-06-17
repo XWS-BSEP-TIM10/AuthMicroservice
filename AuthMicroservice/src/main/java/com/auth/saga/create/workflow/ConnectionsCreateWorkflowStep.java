@@ -16,7 +16,7 @@ public class ConnectionsCreateWorkflowStep implements WorkflowStep {
     private final ConnectionsRegisterDTO requestDTO;
     private WorkflowStepStatus stepStatus = WorkflowStepStatus.PENDING;
 
-    private static final String uri = "/api/v1/users";
+    private static final String URI = "/api/v1/users";
 
     public ConnectionsCreateWorkflowStep(WebClient webClient, ConnectionsRegisterDTO requestDTO) {
         this.webClient = webClient;
@@ -34,7 +34,7 @@ public class ConnectionsCreateWorkflowStep implements WorkflowStep {
         stepStatus = WorkflowStepStatus.START;
         return webClient
                 .post()
-                .uri(uri)
+                .uri(URI)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .body(Mono.just(requestDTO), RegisterDTO.class)
                 .retrieve()
@@ -50,7 +50,7 @@ public class ConnectionsCreateWorkflowStep implements WorkflowStep {
 
         return webClient
                 .delete()
-                .uri(uri + "/" + requestDTO.getId())
+                .uri(URI + "/" + requestDTO.getId())
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .retrieve()
                 .bodyToMono(SagaResponseDTO.class)

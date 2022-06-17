@@ -1,6 +1,5 @@
 package com.auth.service.impl;
 
-import com.auth.model.User;
 import com.auth.model.VerificationToken;
 import com.auth.repository.VerificationTokenRepository;
 import com.auth.service.VerificationTokenService;
