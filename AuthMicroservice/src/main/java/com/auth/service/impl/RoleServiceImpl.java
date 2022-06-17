@@ -8,6 +8,8 @@ import com.auth.model.Role;
 import com.auth.repository.RoleRepository;
 import com.auth.service.RoleService;
 
+import java.util.Optional;
+
 @Service
 public class RoleServiceImpl implements RoleService {
 
@@ -16,7 +18,10 @@ public class RoleServiceImpl implements RoleService {
 
   @Override
   public Role findById(Long id) {
-    return this.roleRepository.findById(id).get();
+    Optional<Role> role = roleRepository.findById(id);
+    if(role.isPresent())
+      return role.get();
+    return null;
   }
 
   @Override

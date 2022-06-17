@@ -33,8 +33,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findById(String id) throws AccessDeniedException {
-        if (userRepository.findById(id).isPresent())
-            return userRepository.findById(id).get();
+        Optional<User> user = userRepository.findById(id);
+        if (user.isPresent())
+            return user.get();
         return null;
     }
 

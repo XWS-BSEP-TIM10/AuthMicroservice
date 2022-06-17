@@ -1,5 +1,6 @@
 package com.auth.service.impl;
 
+import com.auth.exception.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -24,7 +25,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		Optional<User> user = userRepository.findByUsername(username);
 		if (!user.isPresent()) {
-			throw new UsernameNotFoundException(String.format("No user found with username '%s'.", username));
+			throw new UserNotFoundException();
 		} else {
 			return user.get();
 		}
@@ -33,7 +34,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 	public UserDetails loadUserById(String username) throws UsernameNotFoundException {
 		Optional<User> user = userRepository.findById(username);
 		if (!user.isPresent()) {
-			throw new UsernameNotFoundException(String.format("No user found with username '%s'.", username));
+			throw new UserNotFoundException();
 		} else {
 			return user.get();
 		}

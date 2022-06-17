@@ -124,12 +124,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         CreateUserOrchestrator orchestrator = new CreateUserOrchestrator(userService, roleService, getProfileWebClient(), getConnectionsWebClient(), passwordEncoder);
 
         OrchestratorResponseDTO response = orchestrator.registerUser(registerDTO).block();
-
-        if (response.getSuccess()) {
-            VerificationToken verificationToken = saveVerificationToken(registerDTO);
-            emailService.sendEmail(registerDTO.getEmail(), "Account verification", "https://localhost:4200/confirm/" + verificationToken.getToken() + " Click on this link to activate your account");
+        if(response != null) {
+            if (response.getSuccess()) {
+                VerificationToken verificationToken = saveVerificationToken(registerDTO);
+                emailService.sendEmail(registerDTO.getEmail(), "Account verification", "https://localhost:4200/confirm/" + verificationToken.getToken() + " Click on this link to activate your account");
+            }
         }
-
         return response;
     }
 
