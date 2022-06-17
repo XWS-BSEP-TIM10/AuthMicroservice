@@ -16,7 +16,7 @@ public class ConnectionsCreateWorkflowStep implements WorkflowStep {
     private final ConnectionsRegisterDTO requestDTO;
     private WorkflowStepStatus stepStatus = WorkflowStepStatus.PENDING;
 
-    private final String uri = "/api/v1/users";
+    private static final String uri = "/api/v1/users";
 
     public ConnectionsCreateWorkflowStep(WebClient webClient, ConnectionsRegisterDTO requestDTO) {
         this.webClient = webClient;

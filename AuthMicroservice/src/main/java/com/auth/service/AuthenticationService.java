@@ -14,7 +14,7 @@ public interface AuthenticationService {
 
     String verifyUserAccount(String token) throws TokenExpiredException;
 
-    Boolean userNotActivated(String id);
+    boolean userNotActivated(String id);
 
     boolean recoverAccount(String email, String id);
 
@@ -32,7 +32,7 @@ public interface AuthenticationService {
 
     TokenDTO refreshToken(String token);
 
-    Boolean checkToken(String token);
+    boolean checkToken(String token);
 
     String generateAPIToken(String userId);
 

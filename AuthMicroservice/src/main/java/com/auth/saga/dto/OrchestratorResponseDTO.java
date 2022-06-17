@@ -4,7 +4,7 @@ public class OrchestratorResponseDTO {
 
     private String id;
 
-    private Boolean success;
+    private boolean success;
 
     private String message;
 
@@ -25,7 +25,7 @@ public class OrchestratorResponseDTO {
         this.id = id;
     }
 
-    public Boolean getSuccess() {
+    public boolean getSuccess() {
         return success;
     }
 

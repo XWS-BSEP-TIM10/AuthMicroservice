@@ -27,7 +27,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private UserDetailsService userDetailsService;
 
-    protected final Log LOGGER = LogFactory.getLog(getClass());
+    protected final Log logger = LogFactory.getLog(getClass());
 
     public TokenAuthenticationFilter(TokenUtils tokenHelper, UserDetailsService userDetailsService) {
         this.tokenUtils = tokenHelper;
@@ -71,7 +71,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             }
 
         } catch (ExpiredJwtException ex) {
-            LOGGER.debug("Token expired!");
+            logger.debug("Token expired!");
         }
 
         // prosledi request dalje u sledeci filter

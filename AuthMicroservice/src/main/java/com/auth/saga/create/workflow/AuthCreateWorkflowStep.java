@@ -1,6 +1,4 @@
 package com.auth.saga.create.workflow;
-
-import com.auth.grpc.AuthService;
 import com.auth.model.User;
 import com.auth.saga.workflow.WorkflowStep;
 import com.auth.saga.workflow.WorkflowStepStatus;
@@ -13,14 +11,12 @@ public class AuthCreateWorkflowStep implements WorkflowStep {
     private final User user;
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
-    private String email;
     private WorkflowStepStatus status = WorkflowStepStatus.PENDING;
 
     public AuthCreateWorkflowStep(User user, UserService userService, PasswordEncoder passwordEncoder) {
         this.user = user;
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
-        this.email = email;
     }
 
     @Override

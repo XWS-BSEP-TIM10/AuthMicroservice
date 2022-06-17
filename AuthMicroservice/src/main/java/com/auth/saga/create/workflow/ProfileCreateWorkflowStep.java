@@ -14,9 +14,8 @@ public class ProfileCreateWorkflowStep implements WorkflowStep {
     private final WebClient webClient;
     private final RegisterDTO requestDTO;
     private WorkflowStepStatus stepStatus = WorkflowStepStatus.PENDING;
-    private Mono<Boolean> request;
 
-    private final String uri = "api/v1/profiles";
+    private static final String uri = "api/v1/profiles";
 
     public ProfileCreateWorkflowStep(WebClient webClient, RegisterDTO requestDTO) {
         this.webClient = webClient;
@@ -31,7 +30,7 @@ public class ProfileCreateWorkflowStep implements WorkflowStep {
     @Override
     public Mono<Boolean> process() {
         stepStatus = WorkflowStepStatus.START;
-        request = webClient
+        Mono<Boolean> request = webClient
                 .post()
                 .uri(uri)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

@@ -67,7 +67,7 @@ public class CreateUserOrchestrator {
 
     private Workflow getRegisterUserWorkflow(RegisterDTO registerDTO) {
         List<WorkflowStep> workflowSteps = new ArrayList<>();
-        List<Role> roles = new ArrayList<Role>();
+        List<Role> roles = new ArrayList<>();
         roles.add(roleService.findByName("ROLE_USER"));
 
         User user = new User(registerDTO.getUuid(), registerDTO.getUsername(), registerDTO.getPassword(), roles);

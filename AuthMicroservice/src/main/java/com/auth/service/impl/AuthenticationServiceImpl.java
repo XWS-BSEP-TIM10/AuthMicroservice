@@ -48,8 +48,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final VerificationTokenService verificationTokenService;
     private final EmailService emailService;
     private final LoggerServiceImpl loggerService;
-    private final int REGISTRATION_TOKEN_EXPIRES = 60;
-    private final int RECOVERY_TOKEN_EXPIRES = 60;
+    private static final int REGISTRATION_TOKEN_EXPIRES = 60;
+    private static final int RECOVERY_TOKEN_EXPIRES = 60;
 
     @Autowired
     public AuthenticationServiceImpl(AuthenticationManager authenticationManager, TokenUtils tokenUtils, UserService userService, RoleService roleService, PasswordEncoder passwordEncoder, VerificationTokenService verificationTokenService, EmailService emailService) {
@@ -122,10 +122,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         CreateUserOrchestrator orchestrator = new CreateUserOrchestrator(userService, roleService, getProfileWebClient(), getConnectionsWebClient(), passwordEncoder);
+
         OrchestratorResponseDTO response = orchestrator.registerUser(registerDTO).block();
 
-        VerificationToken verificationToken = saveVerificationToken(registerDTO, response);
-        emailService.sendEmail(registerDTO.getEmail(), "Account verification", "https://localhost:4200/confirm/" + verificationToken.getToken() + " Click on this link to activate your account");
+        if (response.getSuccess()) {
+            VerificationToken verificationToken = saveVerificationToken(registerDTO);
+            emailService.sendEmail(registerDTO.getEmail(), "Account verification", "https://localhost:4200/confirm/" + verificationToken.getToken() + " Click on this link to activate your account");
+        }
 
         return response;
     }
@@ -145,16 +148,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     }
 
-    private VerificationToken saveVerificationToken(RegisterDTO registerDTO, OrchestratorResponseDTO response) {
-        if (response.getSuccess()) {
-            List<Role> roles = new ArrayList<Role>();
-            roles.add(roleService.findByName("ROLE_USER"));
-            User user = new User(registerDTO.getUuid(), registerDTO.getUsername(), registerDTO.getPassword(), roles);
-            VerificationToken verificationToken = new VerificationToken(user);
-            verificationTokenService.saveVerificationToken(verificationToken);
-            return verificationToken;
-        }
-        return null;
+    private VerificationToken saveVerificationToken(RegisterDTO registerDTO) {
+
+        List<Role> roles = new ArrayList<>();
+        roles.add(roleService.findByName("ROLE_USER"));
+        User user = new User(registerDTO.getUuid(), registerDTO.getUsername(), registerDTO.getPassword(), roles);
+        VerificationToken verificationToken = new VerificationToken(user);
+        verificationTokenService.saveVerificationToken(verificationToken);
+        return verificationToken;
+
     }
 
     private WebClient getProfileWebClient() {
@@ -182,7 +184,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     private String getAPIToken(User agent, String userId) {
-        return tokenUtils.generateAPIToken(agent.getRoles().get(0).getName(), agent.getId(), userId, false);
+        return tokenUtils.generateAPIToken(agent.getRoles().get(0).getName(), agent.getId(), userId);
     }
 
     private String getRefreshToken(User user) {
@@ -293,13 +295,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public Boolean checkToken(String token) {
+    public boolean checkToken(String token) {
         VerificationToken verificationToken = verificationTokenService.findVerificationTokenByToken(token);
         return verificationToken != null && getDifferenceInMinutes(verificationToken) < RECOVERY_TOKEN_EXPIRES;
     }
 
     @Override
-    public Boolean userNotActivated(String id) {
+    public boolean userNotActivated(String id) {
         VerificationToken verificationToken = verificationTokenService.findVerificationTokenByUser(id);
         if (verificationToken == null) return false;
         verificationTokenService.delete(verificationToken);

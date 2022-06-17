@@ -16,7 +16,7 @@ public class LoggerServiceImpl {
     }
 
     public void userSigningUpFailed(String message) {
-        logger.warn("New user signing up failed: {}. ID: {}", message);
+        logger.warn("New user signing up failed: {}.", message);
     }
 
     public void loginSuccess(String username) {
