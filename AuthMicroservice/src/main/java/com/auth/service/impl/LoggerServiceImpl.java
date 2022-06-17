@@ -85,19 +85,19 @@ public class LoggerServiceImpl {
         logger.warn("Two-factor login failed, invalid code. Username: {}", username);
     }
 
-    public void twoFAStatusChanged(boolean enable2FA, String username) {
-        logger.info("Two-factor authentication status changed on: {}. Username: {}", enable2FA, username);
+    public void twoFAStatusChanged(boolean enable2FA, String userId) {
+        logger.info("Two-factor authentication status changed on: {}. User id: {}", enable2FA, userId);
     }
 
-    public void twoFAStatusChangeFailed(boolean enable2FA, String username) {
-        logger.warn("Two-factor authentication status changing on: {} failed. Username: {}", enable2FA, username);
+    public void twoFAStatusChangeFailed(boolean enable2FA, String userId) {
+        logger.warn("Two-factor authentication status changing on: {} failed. User id: {}", enable2FA, userId);
     }
 
-    public void twoFAStatusCheck(String username) {
-        logger.info("Two-factor authentication status check done. Username: {}", username);
+    public void twoFAStatusCheck(String userId) {
+        logger.info("Two-factor authentication status check done. User id: {}", userId);
     }
 
-    public void two2FACheckFailed(String username) {
-        logger.warn("Checking two-factor status failed. Username: {}", username);
+    public void two2FACheckFailed(String userId) {
+        logger.warn("Checking two-factor status failed. User id: {}", userId);
     }
 }

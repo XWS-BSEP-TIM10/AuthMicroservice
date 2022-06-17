@@ -228,10 +228,10 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         Change2FAStatusResponseProto responseProto;
         try {
             String secret = authenticationService.change2FAStatus(request.getUserId(), request.getEnable2FA());
-            loggerService.twoFAStatusChanged(request.getEnable2FA(), SecurityContextHolder.getContext().getAuthentication().getName());
+            loggerService.twoFAStatusChanged(request.getEnable2FA(), request.getUserId());
             responseProto = Change2FAStatusResponseProto.newBuilder().setSecret(secret).setStatus("Status 200").build();
         } catch (Exception e) {
-            loggerService.twoFAStatusChangeFailed(request.getEnable2FA(), SecurityContextHolder.getContext().getAuthentication().getName());
+            loggerService.twoFAStatusChangeFailed(request.getEnable2FA(), request.getUserId());
             responseProto = Change2FAStatusResponseProto.newBuilder().setStatus("Status 404").build();
         }
         responseObserver.onNext(responseProto);
@@ -243,10 +243,10 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         TwoFAStatusResponseProto responseProto;
         try {
             boolean twoFAEnabled = authenticationService.checkTwoFaStatus(request.getUserId());
-            loggerService.twoFAStatusCheck(SecurityContextHolder.getContext().getAuthentication().getName());
+            loggerService.twoFAStatusCheck(request.getUserId());
             responseProto = TwoFAStatusResponseProto.newBuilder().setEnabled2FA(twoFAEnabled).setStatus("Status 200").build();
         } catch (UserNotFoundException ex) {
-            loggerService.two2FACheckFailed(SecurityContextHolder.getContext().getAuthentication().getName());
+            loggerService.two2FACheckFailed(request.getUserId());
             responseProto = TwoFAStatusResponseProto.newBuilder().setStatus("Status 404").build();
         }
         responseObserver.onNext(responseProto);
