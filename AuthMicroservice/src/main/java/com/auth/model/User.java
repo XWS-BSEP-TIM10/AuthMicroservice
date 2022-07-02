@@ -50,7 +50,6 @@ public class User implements UserDetails {
     public User() {
     }
 
-
     public User(String uuid, String username, String password, List<Role> userType) {
         super();
         this.id = uuid;

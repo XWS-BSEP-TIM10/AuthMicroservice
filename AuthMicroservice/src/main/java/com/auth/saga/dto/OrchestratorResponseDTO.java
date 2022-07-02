@@ -1,5 +1,8 @@
 package com.auth.saga.dto;
 
+import com.auth.dto.NewUserDTO;
+import com.auth.dto.RegisterDTO;
+
 public class OrchestratorResponseDTO {
 
     private String id;
@@ -8,13 +11,18 @@ public class OrchestratorResponseDTO {
 
     private String message;
 
+    private String service;
+
+    private RegisterDTO user;
+
     public OrchestratorResponseDTO() {
     }
 
-    public OrchestratorResponseDTO(String username, Boolean success, String message) {
+    public OrchestratorResponseDTO(String username, Boolean success, String message, RegisterDTO user) {
         this.id = username;
         this.success = success;
         this.message = message;
+        this.user = user;
     }
 
     public String getId() {
@@ -26,6 +34,26 @@ public class OrchestratorResponseDTO {
     }
 
     public boolean getSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public RegisterDTO getUser() {
+        return user;
+    }
+
+    public void setUser(RegisterDTO user) {
+        this.user = user;
+    }
+
+    public String getService() {
+        return service;
+    }
+
+    public boolean isSuccess() {
         return success;
     }
 

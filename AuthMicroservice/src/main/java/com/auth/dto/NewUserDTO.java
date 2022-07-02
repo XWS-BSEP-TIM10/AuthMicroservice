@@ -37,6 +37,19 @@ public class NewUserDTO {
         this.biography = biography;
     }
 
+    public NewUserDTO(RegisterDTO registerDTO){
+        this.id = registerDTO.getUuid();
+        this.firstName = registerDTO.getFirstName();
+        this.lastName = registerDTO.getLastName();
+        this.email = registerDTO.getEmail();
+        this.phoneNumber = registerDTO.getPhoneNumber();
+        this.gender = registerDTO.getGender();
+        this.dateOfBirth = registerDTO.getDateOfBirth();
+        this.username = registerDTO.getUsername();
+        this.password = registerDTO.getPassword();
+        this.biography = registerDTO.getBiography();
+    }
+
     public String getFirstName() {
         return firstName;
     }
