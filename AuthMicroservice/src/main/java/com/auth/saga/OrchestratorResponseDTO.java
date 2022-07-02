@@ -1,6 +1,5 @@
-package com.auth.saga.dto;
+package com.auth.saga;
 
-import com.auth.dto.NewUserDTO;
 import com.auth.dto.RegisterDTO;
 
 public class OrchestratorResponseDTO {
