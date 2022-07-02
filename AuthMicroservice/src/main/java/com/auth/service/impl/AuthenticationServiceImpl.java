@@ -10,11 +10,7 @@ import com.auth.model.VerificationToken;
 import com.auth.saga.create.CreateUserOrchestrator;
 import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.security.util.TokenUtils;
-import com.auth.service.AuthenticationService;
-import com.auth.service.EmailService;
-import com.auth.service.RoleService;
-import com.auth.service.UserService;
-import com.auth.service.VerificationTokenService;
+import com.auth.service.*;
 import de.taimos.totp.TOTP;
 import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.codec.binary.Hex;
@@ -122,7 +118,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             registerDTO = new RegisterDTO(UUID.randomUUID().toString(), newUserDTO);
         }
 
-        CreateUserOrchestrator orchestrator = new CreateUserOrchestrator(userService, roleService, getProfileWebClient(), getConnectionsWebClient(), passwordEncoder);
+        CreateUserOrchestrator orchestrator = new CreateUserOrchestrator(userService, roleService, getProfileWebClient(), getConnectionsWebClient(), passwordEncoder, new MessageQueueService());
 
         try {
             orchestrator.registerUser(registerDTO);
