@@ -53,10 +53,12 @@ public class CreateUserOrchestrator {
         // it connects to nats://localhost:4222 by default
         Connection nats = Nats.connect();
 
-        nats.request("nats.demo.service", "Hello NATS".getBytes())
+        /*nats.request("nats.demo.service", "Hello NATS".getBytes())
                 .thenApply(Message::getData)  // gets executed when we get response from receiver
                 .thenApply(String::new)
-                .thenAccept(s -> System.out.println("Response from Receiver: " + s));
+                .thenAccept(s -> System.out.println("Response from Receiver: " + s));*/
+
+        nats.publish("nats.demo.service",  "Hello NATS".getBytes());
     }
 
     private Mono<? extends OrchestratorResponseDTO> revertRegistration(Workflow workflow, RegisterDTO requestDTO) {
