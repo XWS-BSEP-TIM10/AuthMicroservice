@@ -14,11 +14,15 @@ import com.auth.saga.workflow.WorkflowStep;
 import com.auth.saga.workflow.WorkflowStepStatus;
 import com.auth.service.RoleService;
 import com.auth.service.UserService;
+import io.nats.client.Connection;
+import io.nats.client.Message;
+import io.nats.client.Nats;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,18 +47,16 @@ public class CreateUserOrchestrator {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public Mono<OrchestratorResponseDTO> registerUser(final RegisterDTO requestDTO) {
-        Workflow workflow = this.getRegisterUserWorkflow(requestDTO);
-        return Flux.fromStream(() -> workflow.getSteps().stream())
-                .flatMap(WorkflowStep::process)
-                .handle(((aBoolean, synchronousSink) -> {
-                    if (aBoolean)
-                        synchronousSink.next(true);
-                    else
-                        synchronousSink.error(new WorkflowException("register user failed!"));
-                }))
-                .then(Mono.fromCallable(() -> getResponseDTO(requestDTO, true, "")))
-                .onErrorResume(ex -> this.revertRegistration(workflow, requestDTO));
+    public void registerUser(final RegisterDTO requestDTO) throws IOException, InterruptedException {
+        //Workflow workflow = this.getRegisterUserWorkflow(requestDTO);
+        // nats connection
+        // it connects to nats://localhost:4222 by default
+        Connection nats = Nats.connect();
+
+        nats.request("nats.demo.service", "Hello NATS".getBytes())
+                .thenApply(Message::getData)  // gets executed when we get response from receiver
+                .thenApply(String::new)
+                .thenAccept(s -> System.out.println("Response from Receiver: " + s));
     }
 
     private Mono<? extends OrchestratorResponseDTO> revertRegistration(Workflow workflow, RegisterDTO requestDTO) {

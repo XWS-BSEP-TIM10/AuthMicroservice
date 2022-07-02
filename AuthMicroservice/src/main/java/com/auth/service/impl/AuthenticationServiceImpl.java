@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -123,14 +124,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         CreateUserOrchestrator orchestrator = new CreateUserOrchestrator(userService, roleService, getProfileWebClient(), getConnectionsWebClient(), passwordEncoder);
 
-        OrchestratorResponseDTO response = orchestrator.registerUser(registerDTO).block();
-        if(response != null) {
-            if (response.getSuccess()) {
-                VerificationToken verificationToken = saveVerificationToken(registerDTO);
-                emailService.sendEmail(registerDTO.getEmail(), "Account verification", "https://localhost:4200/confirm/" + verificationToken.getToken() + " Click on this link to activate your account");
-            }
+        try {
+            orchestrator.registerUser(registerDTO);
+            //VerificationToken verificationToken = saveVerificationToken(registerDTO);
+            //emailService.sendEmail(registerDTO.getEmail(), "Account verification", "https://localhost:4200/confirm/" + verificationToken.getToken() + " Click on this link to activate your account");
+        } catch (IOException |InterruptedException ex) {
+            ex.printStackTrace();
+            return new OrchestratorResponseDTO(newUserDTO.getUsername(), false, "Registration failed!");
         }
-        return response;
+        return new OrchestratorResponseDTO(newUserDTO.getUsername(), true, "Success registration!");
     }
 
     @Override
