@@ -40,4 +40,13 @@ public class OrchestratorResponseDTO {
     public void setMessage(String message) {
         this.message = message;
     }
+
+    @Override
+    public String toString() {
+        return "OrchestratorResponseDTO{" +
+                "id='" + id + '\'' +
+                ", success=" + success +
+                ", message='" + message + '\'' +
+                '}';
+    }
 }

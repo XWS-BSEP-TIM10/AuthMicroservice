@@ -50,7 +50,7 @@ public class ConnectionsCreateWorkflowStep implements WorkflowStep {
 
         return webClient
                 .delete()
-                .uri(URI + "/" + requestDTO.getId())
+                .uri(URI + "/" + requestDTO.getUuid())
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .retrieve()
                 .bodyToMono(SagaResponseDTO.class)
