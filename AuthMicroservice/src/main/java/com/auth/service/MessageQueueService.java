@@ -40,7 +40,12 @@ public class MessageQueueService {
 
     public MessageQueueService() {
         try {
-            this.nats = Nats.connect();
+            String natsURI = System.getenv("NATS_URI") == null ? "localhost" : System.getenv("NATS_URI");
+            if (natsURI.equals("localhost")) {
+                nats = Nats.connect();
+            } else {
+                nats = Nats.connect(natsURI);
+            }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -60,13 +65,13 @@ public class MessageQueueService {
             } else if (!responseDTO.isSuccess() && responseDTO.getService().equals("Connections")) {
                 publishRevert(responseDTO.getId(), "nats.profile.revert");
                 userService.deleteById(responseDTO.getId());
-            } else if (!responseDTO.isSuccess() && responseDTO.getService().equals("Profile")){
+            } else if (!responseDTO.isSuccess() && responseDTO.getService().equals("Profile")) {
                 userService.deleteById(responseDTO.getId());
             } else {
                 VerificationToken verificationToken = saveVerificationToken(responseDTO.getUser());
                 emailService.sendEmail(responseDTO.getUser().getEmail(), "Account verification", "https://localhost:4200/confirm/" + verificationToken.getToken() + " Click on this link to activate your account");
             }
-        } );
+        });
     }
 
     private VerificationToken saveVerificationToken(RegisterDTO registerDTO) {
@@ -82,11 +87,11 @@ public class MessageQueueService {
         GsonBuilder builder = new GsonBuilder();
         Gson gson = builder.create();
         String json = gson.toJson(requestDTO);
-        nats.publish(serviceChannel,  json.getBytes());
+        nats.publish(serviceChannel, json.getBytes());
     }
 
     public void publishRevert(String userId, String serviceChannel) {
-        nats.publish(serviceChannel,  userId.getBytes());
+        nats.publish(serviceChannel, userId.getBytes());
     }
 
     @PostConstruct
@@ -104,7 +109,7 @@ public class MessageQueueService {
             User updatedUser = userService.update(newUserDTO.getId(), newUserDTO.getUsername());
             UpdateUserResponseDto responseDto;
             if (updatedUser == null)
-                responseDto =  new UpdateUserResponseDto(false, "update failed!", newUserDTO.getOldUser());
+                responseDto = new UpdateUserResponseDto(false, "update failed!", newUserDTO.getOldUser());
             else
                 responseDto = new UpdateUserResponseDto(true, "success!", null);
 
