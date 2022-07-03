@@ -4,22 +4,15 @@ import com.auth.dto.NewUserDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.dto.TokenDTO;
 import com.auth.exception.*;
-import com.auth.model.Role;
 import com.auth.model.User;
 import com.auth.model.VerificationToken;
-import com.auth.saga.create.CreateUserOrchestrator;
-import com.auth.saga.dto.OrchestratorResponseDTO;
+import com.auth.saga.CreateUserOrchestrator;
 import com.auth.security.util.TokenUtils;
-import com.auth.service.AuthenticationService;
-import com.auth.service.EmailService;
-import com.auth.service.RoleService;
-import com.auth.service.UserService;
-import com.auth.service.VerificationTokenService;
+import com.auth.service.*;
 import de.taimos.totp.TOTP;
 import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,14 +20,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.netty.http.client.HttpClient;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -106,7 +95,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Transactional
     @Override
-    public OrchestratorResponseDTO signUp(NewUserDTO newUserDTO) throws UserAlreadyExistsException, EmailAlreadyExistsException {
+    public RegisterDTO signUp(NewUserDTO newUserDTO) throws UserAlreadyExistsException, EmailAlreadyExistsException {
 
         RegisterDTO registerDTO;
 
@@ -121,16 +110,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             registerDTO = new RegisterDTO(UUID.randomUUID().toString(), newUserDTO);
         }
 
-        CreateUserOrchestrator orchestrator = new CreateUserOrchestrator(userService, roleService, getProfileWebClient(), getConnectionsWebClient(), passwordEncoder);
+        CreateUserOrchestrator orchestrator = new CreateUserOrchestrator(userService, roleService, new MessageQueueService());
 
-        OrchestratorResponseDTO response = orchestrator.registerUser(registerDTO).block();
-        if(response != null) {
-            if (response.getSuccess()) {
-                VerificationToken verificationToken = saveVerificationToken(registerDTO);
-                emailService.sendEmail(registerDTO.getEmail(), "Account verification", "https://localhost:4200/confirm/" + verificationToken.getToken() + " Click on this link to activate your account");
-            }
-        }
-        return response;
+        orchestrator.registerUser(registerDTO);
+        return registerDTO;
     }
 
     @Override
@@ -146,37 +129,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userService.save(user);
 
-    }
-
-    private VerificationToken saveVerificationToken(RegisterDTO registerDTO) {
-
-        List<Role> roles = new ArrayList<>();
-        roles.add(roleService.findByName("ROLE_USER"));
-        User user = new User(registerDTO.getUuid(), registerDTO.getUsername(), registerDTO.getPassword(), roles);
-        VerificationToken verificationToken = new VerificationToken(user);
-        verificationTokenService.saveVerificationToken(verificationToken);
-        return verificationToken;
-
-    }
-
-    private WebClient getProfileWebClient() {
-        String profileHost = System.getenv("PROFILE_HOST") == null ? "localhost" : System.getenv("PROFILE_HOST");
-        String profilePort = System.getenv("PROFILE_PORT") == null ? "8081" : System.getenv("PROFILE_PORT");
-        String baseUrl = String.format("http://%s:%s/", profileHost, profilePort);
-        return WebClient.builder()
-                .baseUrl(baseUrl)
-                .clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
-                .build();
-    }
-
-    private WebClient getConnectionsWebClient() {
-        String connectionsHost = System.getenv("CONNECTIONS_HOST") == null ? "localhost" : System.getenv("CONNECTIONS_HOST");
-        String connectionsPort = System.getenv("CONNECTIONS_PORT") == null ? "8082" : System.getenv("CONNECTIONS_PORT");
-        String baseUrl = String.format("http://%s:%s/", connectionsHost, connectionsPort);
-        return WebClient.builder()
-                .baseUrl(baseUrl)
-                .clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
-                .build();
     }
 
     private String getToken(User user) {

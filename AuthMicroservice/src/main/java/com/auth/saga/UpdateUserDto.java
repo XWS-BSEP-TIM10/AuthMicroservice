@@ -1,31 +1,46 @@
-package com.auth.dto;
+package com.auth.saga;
 
-public class NewUserDTO {
+import javax.persistence.Column;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import java.util.Date;
 
+public class UpdateUserDto {
+
+    @Id
     private String id;
 
+    @Column(name = "first_name")
     private String firstName;
 
+    @Column(name = "last_name")
     private String lastName;
 
+    @Column(name = "email", unique = true)
     private String email;
 
+    @Column(name = "phone_number")
     private String phoneNumber;
 
-    private String gender;
+    @Column(name = "gender")
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
 
-    private String dateOfBirth;
+    @Column(name = "date_of_birth")
+    private Date dateOfBirth;
 
+    @Column(name = "username", unique = true, nullable = false)
     private String username;
 
-    private String password;
-
+    @Column(name = "biography")
     private String biography;
 
-    public NewUserDTO() {
+    public UpdateUserDto() {
     }
 
-    public NewUserDTO(String firstName, String lastName, String email, String phoneNumber, String gender, String dateOfBirth, String username, String password, String biography) {
+    public UpdateUserDto(String id, String firstName, String lastName, String email, String phoneNumber, Gender gender, Date dateOfBirth, String username, String biography) {
+        this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -33,21 +48,15 @@ public class NewUserDTO {
         this.gender = gender;
         this.dateOfBirth = dateOfBirth;
         this.username = username;
-        this.password = password;
         this.biography = biography;
     }
 
-    public NewUserDTO(RegisterDTO registerDTO){
-        this.id = registerDTO.getUuid();
-        this.firstName = registerDTO.getFirstName();
-        this.lastName = registerDTO.getLastName();
-        this.email = registerDTO.getEmail();
-        this.phoneNumber = registerDTO.getPhoneNumber();
-        this.gender = registerDTO.getGender();
-        this.dateOfBirth = registerDTO.getDateOfBirth();
-        this.username = registerDTO.getUsername();
-        this.password = registerDTO.getPassword();
-        this.biography = registerDTO.getBiography();
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getFirstName() {
@@ -82,19 +91,19 @@ public class NewUserDTO {
         this.phoneNumber = phoneNumber;
     }
 
-    public String getGender() {
+    public Gender getGender() {
         return gender;
     }
 
-    public void setGender(String gender) {
+    public void setGender(Gender gender) {
         this.gender = gender;
     }
 
-    public String getDateOfBirth() {
+    public Date getDateOfBirth() {
         return dateOfBirth;
     }
 
-    public void setDateOfBirth(String dateOfBirth) {
+    public void setDateOfBirth(Date dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
 
@@ -106,27 +115,11 @@ public class NewUserDTO {
         this.username = username;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public String getBiography() {
         return biography;
     }
 
     public void setBiography(String biography) {
         this.biography = biography;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getId() {
-        return id;
     }
 }

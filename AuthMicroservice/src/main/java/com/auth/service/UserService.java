@@ -19,6 +19,8 @@ public interface UserService {
 
     void delete(User user);
 
+    void deleteById(String id);
+
     User update(String id, String username);
 
     String change2FAStatus(String userId, boolean enableFA);

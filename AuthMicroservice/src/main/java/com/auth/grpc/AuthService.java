@@ -1,10 +1,10 @@
 package com.auth.grpc;
 
 import com.auth.dto.NewUserDTO;
+import com.auth.dto.RegisterDTO;
 import com.auth.dto.TokenDTO;
 import com.auth.exception.*;
 import com.auth.model.User;
-import com.auth.saga.dto.OrchestratorResponseDTO;
 import com.auth.service.AuthenticationService;
 import com.auth.service.impl.LoggerServiceImpl;
 import io.grpc.stub.StreamObserver;
@@ -17,6 +17,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
 
     private final AuthenticationService authenticationService;
     private final LoggerServiceImpl loggerService;
+    private static final String STATUS_CONFLICT = "Status 409";
     private static final String STATUS_OK = "Status 200";
     private static final String STATUS_TEAPOT = "Status 418";
     private static final String STATUS_BAD_REQUEST = "Status 400";
@@ -37,18 +38,12 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
                     request.getDateOfBirth(), request.getUsername(), request.getPassword(),
                     request.getBiography());
             newUserDTO.setId(request.getId());
-            OrchestratorResponseDTO response = authenticationService.signUp(newUserDTO);
-
-            if (!response.getSuccess()) {
-                loggerService.userSigningUpFailed("User signup failed");
-                responseProto = NewUserResponseProto.newBuilder().setId(response.getId()).setStatus("Status 500").build();
-            } else {
-                loggerService.userSignedUp(response.getId());
-                responseProto = NewUserResponseProto.newBuilder().setId(response.getId()).setStatus(STATUS_OK).build();
-            }
+            RegisterDTO registered = authenticationService.signUp(newUserDTO);
+            loggerService.userSignedUp(registered.getUuid());
+            responseProto = NewUserResponseProto.newBuilder().setId(registered.getUuid()).setStatus(STATUS_OK).build();
         } catch (UserAlreadyExistsException e) {
             loggerService.userSigningUpFailed("User signup failed, user already exists");
-            responseProto = NewUserResponseProto.newBuilder().setId("").setStatus("Status 409").build();
+            responseProto = NewUserResponseProto.newBuilder().setId("").setStatus(STATUS_CONFLICT).build();
         } catch (EmailAlreadyExistsException e) {
             loggerService.userSigningUpFailed("User signup failed, email already exists");
             responseProto = NewUserResponseProto.newBuilder().setId("").setStatus(STATUS_TEAPOT).build();

@@ -1,22 +1,20 @@
-package com.auth.saga.dto;
+package com.auth.saga;
 
-public class SagaResponseDTO {
+public class UpdateUserResponseDto {
 
-    private String id;
     private boolean success;
+
     private String message;
 
-    public SagaResponseDTO() {
+    private UpdateUserDto oldUser;
+
+    public UpdateUserResponseDto() {
     }
 
-    public SagaResponseDTO(String id, boolean success, String message) {
-        this.id = id;
+    public UpdateUserResponseDto(boolean success, String message, UpdateUserDto oldUser) {
         this.success = success;
         this.message = message;
-    }
-
-    public String getId() {
-        return id;
+        this.oldUser = oldUser;
     }
 
     public boolean isSuccess() {
@@ -33,5 +31,13 @@ public class SagaResponseDTO {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public UpdateUserDto getOldUser() {
+        return oldUser;
+    }
+
+    public void setOldUser(UpdateUserDto oldUser) {
+        this.oldUser = oldUser;
     }
 }
