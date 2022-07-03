@@ -28,6 +28,6 @@ public class CreateUserOrchestrator {
         List<Role> roles = new ArrayList<>();
         roles.add(roleService.findByName("ROLE_USER"));
         userService.saveOrRewrite(new User(registerDTO.getUuid(), registerDTO.getUsername(), registerDTO.getPassword(), roles));
-        messageQueue.publish(registerDTO, "nats.profile");
+        messageQueue.publishCreateUser(registerDTO, "nats.profile");
     }
 }

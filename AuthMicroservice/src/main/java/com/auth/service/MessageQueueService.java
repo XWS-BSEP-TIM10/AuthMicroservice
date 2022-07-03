@@ -5,6 +5,8 @@ import com.auth.model.Role;
 import com.auth.model.User;
 import com.auth.model.VerificationToken;
 import com.auth.saga.OrchestratorResponseDTO;
+import com.auth.saga.UpdateUserRequestDto;
+import com.auth.saga.UpdateUserResponseDto;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.nats.client.Connection;
@@ -45,7 +47,7 @@ public class MessageQueueService {
     }
 
     @PostConstruct
-    public void subscribe() {
+    public void subscribeToCreateUserResponse() {
         Dispatcher dispatcher = nats.createDispatcher(msg -> {
         });
         dispatcher.subscribe("nats.demo.reply", msg -> {
@@ -54,7 +56,7 @@ public class MessageQueueService {
             String json = new String(msg.getData(), StandardCharsets.UTF_8);
             OrchestratorResponseDTO responseDTO = gson.fromJson(json, OrchestratorResponseDTO.class);
             if (responseDTO.getSuccess() && responseDTO.getService().equals("Profile")) {
-                publish(responseDTO.getUser(), "nats.connections");
+                publishCreateUser(responseDTO.getUser(), "nats.connections");
             } else if (!responseDTO.isSuccess() && responseDTO.getService().equals("Connections")) {
                 publishRevert(responseDTO.getId(), "nats.profile.revert");
                 userService.deleteById(responseDTO.getId());
@@ -76,7 +78,7 @@ public class MessageQueueService {
         return verificationToken;
     }
 
-    public void publish(RegisterDTO requestDTO, String serviceChannel) {
+    public void publishCreateUser(RegisterDTO requestDTO, String serviceChannel) {
         GsonBuilder builder = new GsonBuilder();
         Gson gson = builder.create();
         String json = gson.toJson(requestDTO);
@@ -85,5 +87,35 @@ public class MessageQueueService {
 
     public void publishRevert(String userId, String serviceChannel) {
         nats.publish(serviceChannel,  userId.getBytes());
+    }
+
+    @PostConstruct
+    public void subscribeToUpdateUser() {
+        Dispatcher dispatcher = nats.createDispatcher(msg -> {
+        });
+
+        dispatcher.subscribe("nats.update.auth", msg -> {
+
+            Gson gson = new Gson();
+            String json = new String(msg.getData(), StandardCharsets.UTF_8);
+            UpdateUserRequestDto newUserDTO = gson.fromJson(json, UpdateUserRequestDto.class);
+            System.out.println(newUserDTO);
+
+            User updatedUser = userService.update(newUserDTO.getId(), newUserDTO.getUsername());
+            UpdateUserResponseDto responseDto;
+            if (updatedUser == null)
+                responseDto =  new UpdateUserResponseDto(false, "update failed!", newUserDTO.getOldUser());
+            else
+                responseDto = new UpdateUserResponseDto(true, "success!", null);
+
+            publishResponseForUpdateUser(responseDto);
+        });
+    }
+
+    public void publishResponseForUpdateUser(UpdateUserResponseDto responseDto) {
+        GsonBuilder builder = new GsonBuilder();
+        Gson gson = builder.create();
+        String json = gson.toJson(responseDto);
+        nats.publish("nats.profile.reply", json.getBytes());
     }
 }

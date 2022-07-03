@@ -22,9 +22,6 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private RoleService roleService;
-
     @Override
     public User findByUsername(String username) throws UsernameNotFoundException {
         Optional<User> user = userRepository.findByUsername(username);
@@ -34,9 +31,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findById(String id) throws AccessDeniedException {
         Optional<User> user = userRepository.findById(id);
-        if (user.isPresent())
-            return user.get();
-        return null;
+        return user.orElse(null);
     }
 
     public List<User> findAll() throws AccessDeniedException {
@@ -84,7 +79,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User update(String id, String username) {
         User user = findById(id);
-        if (user == null)
+        if (user == null || findByUsername(username) != null)
             return null;
         user.setUsername(username);
         return userRepository.save(user);
