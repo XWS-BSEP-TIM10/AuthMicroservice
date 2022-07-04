@@ -110,7 +110,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             registerDTO = new RegisterDTO(UUID.randomUUID().toString(), newUserDTO);
         }
 
-        CreateUserOrchestrator orchestrator = new CreateUserOrchestrator(userService, roleService, new MessageQueueService());
+        CreateUserOrchestrator orchestrator = new CreateUserOrchestrator(userService, roleService, new MessageQueueService(), passwordEncoder);
 
         orchestrator.registerUser(registerDTO);
         return registerDTO;

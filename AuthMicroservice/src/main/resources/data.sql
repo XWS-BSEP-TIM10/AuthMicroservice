@@ -62,7 +62,8 @@ INSERT INTO permission(id, name)
 VALUES (21, 'CHECK_2FA_STATUS');
 INSERT INTO permission(id, name)
 VALUES (22, 'CREATE_BLOCK_PERMISSION');
-
+INSERT INTO permission(id, name)
+VALUES (23, 'GET_RECOMMENDED_CONNECTIONS');
 
 INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 1);
@@ -116,6 +117,8 @@ INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (2, 21);
 INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 22);
+INSERT INTO roles_permissions(role_id, permission_id)
+VALUES (1, 23);
 
 INSERT INTO user_role (ROLE_ID, USER_ID)
 VALUES (2, 'd12602fd-b7af-4da1-b1ca-bad8166d1fb3');
