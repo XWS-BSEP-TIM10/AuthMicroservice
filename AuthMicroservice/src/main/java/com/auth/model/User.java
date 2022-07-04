@@ -56,7 +56,7 @@ public class User implements UserDetails {
         this.username = username;
         this.password = password;
         this.roles = userType;
-        this.activated = false;
+        this.activated = true;
     }
 
     public String getId() {
