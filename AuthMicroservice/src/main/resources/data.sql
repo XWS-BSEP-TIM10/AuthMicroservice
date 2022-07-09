@@ -66,7 +66,8 @@ INSERT INTO permission(id, name)
 VALUES (23, 'GET_RECOMMENDED_CONNECTIONS');
 INSERT INTO permission(id, name)
 VALUES (24, 'GET_PENDING_CONNECTIONS');
-
+INSERT INTO permission(id, name)
+VALUES (25, 'GET_EVENTS_PERMISSION');
 
 
 INSERT INTO roles_permissions(role_id, permission_id)
@@ -125,6 +126,8 @@ INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 23);
 INSERT INTO roles_permissions(role_id, permission_id)
 VALUES (1, 24);
+INSERT INTO roles_permissions(role_id, permission_id)
+VALUES (2, 25);
 
 INSERT INTO user_role (ROLE_ID, USER_ID)
 VALUES (2, 'd12602fd-b7af-4da1-b1ca-bad8166d1fb3');
