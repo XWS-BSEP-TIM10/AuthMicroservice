@@ -4,19 +4,27 @@ import com.auth.dto.NewUserDTO;
 import com.auth.dto.RegisterDTO;
 import com.auth.dto.TokenDTO;
 import com.auth.exception.*;
+import com.auth.model.Event;
 import com.auth.model.User;
 import com.auth.service.AuthenticationService;
+import com.auth.service.EventService;
+import com.auth.service.UserService;
 import com.auth.service.impl.LoggerServiceImpl;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import proto.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @GrpcService
 public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
 
     private final AuthenticationService authenticationService;
     private final LoggerServiceImpl loggerService;
+    private final UserService userService;
+    private final EventService eventService;
     private static final String STATUS_CONFLICT = "Status 409";
     private static final String STATUS_OK = "Status 200";
     private static final String STATUS_TEAPOT = "Status 418";
@@ -24,7 +32,9 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
     private static final String STATUS_NOT_FOUND = "Status 404";
 
     @Autowired
-    public AuthService(AuthenticationService authenticationService) {
+    public AuthService(AuthenticationService authenticationService, UserService userService, EventService eventService) {
+        this.userService = userService;
+        this.eventService = eventService;
         this.authenticationService = authenticationService;
         this.loggerService = new LoggerServiceImpl(this.getClass());
     }
@@ -39,6 +49,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
                     request.getBiography());
             newUserDTO.setId(request.getId());
             RegisterDTO registered = authenticationService.signUp(newUserDTO);
+            eventService.save(new Event("User successfully signed up. Username: " + request.getUsername()));
             loggerService.userSignedUp(registered.getUuid());
             responseProto = NewUserResponseProto.newBuilder().setId(registered.getUuid()).setStatus(STATUS_OK).build();
         } catch (UserAlreadyExistsException e) {
@@ -58,6 +69,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         LoginResponseProto responseProto;
         try {
             TokenDTO tokenDTO = authenticationService.login(request.getUsername(), request.getPassword(), request.getCode());
+            eventService.save(new Event("Login successful. Username: " + request.getUsername()));
             loggerService.loginSuccess(request.getUsername());
             responseProto = LoginResponseProto.newBuilder().setJwt(tokenDTO.getJwt()).setRefreshToken(tokenDTO.getRefreshToken()).setStatus(STATUS_OK).build();
         } catch (CodeNotMatchingException codeNotMatchingException) {
@@ -92,6 +104,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         VerifyAccountResponseProto responseProto;
         try {
             String username = authenticationService.verifyUserAccount(request.getVerificationToken());
+            eventService.save(new Event("User successfully verified account. Username: " + username));
             loggerService.accountConfirmed(username);
             responseProto = VerifyAccountResponseProto.newBuilder().setUsername(username).setStatus(STATUS_OK).build();
         } catch (TokenExpiredException ex) {
@@ -109,6 +122,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
 
         try {
             authenticationService.changePassword(request.getUserId(), request.getOldPassword(), request.getNewPassword(), request.getRepeatedNewPassword());
+            eventService.save(new Event("User successfully changed password. Username: " + userService.findById(request.getUserId()).getUsername()));
             loggerService.passwordChanged(request.getUserId());
             responseProto = ChangePasswordResponseProto.newBuilder().setStatus(STATUS_OK).setMessage("Password changed").build();
         } catch (PasswordsNotMatchingException ex) {
@@ -132,6 +146,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
 
         if (accomplished) {
             loggerService.accountRecovered(request.getId());
+            eventService.save(new Event("User successfully recovered account. Username: " + userService.findById(request.getId()).getUsername()));
             responseProto = SendTokenResponseProto.newBuilder().setStatus(STATUS_OK).build();
         } else {
             loggerService.accountRecoverFailed(request.getId());
@@ -182,6 +197,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         LoginResponseProto responseProto;
         try {
             TokenDTO tokenDTO = authenticationService.passwordlessSignIn(request.getVerificationToken());
+            eventService.save(new Event("User login passwordless. User token: " + request.getVerificationToken()));
             responseProto = LoginResponseProto.newBuilder().setJwt(tokenDTO.getJwt()).setRefreshToken(tokenDTO.getRefreshToken()).setStatus(STATUS_OK).build();
         } catch (Exception ex) {
             responseProto = LoginResponseProto.newBuilder().setJwt("").setStatus(STATUS_BAD_REQUEST).build();
@@ -222,6 +238,7 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
         Change2FAStatusResponseProto responseProto;
         try {
             String secret = authenticationService.change2FAStatus(request.getUserId(), request.getEnable2FA());
+            eventService.save(new Event("User successfully changed 2FA status. Username: " + userService.findById(request.getUserId()).getUsername()));
             loggerService.twoFAStatusChanged(request.getEnable2FA(), request.getUserId());
             responseProto = Change2FAStatusResponseProto.newBuilder().setSecret(secret).setStatus(STATUS_OK).build();
         } catch (Exception e) {
@@ -243,6 +260,18 @@ public class AuthService extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBase {
             loggerService.two2FACheckFailed(request.getUserId());
             responseProto = TwoFAStatusResponseProto.newBuilder().setStatus(STATUS_NOT_FOUND).build();
         }
+        responseObserver.onNext(responseProto);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getEvents(EventProto request, StreamObserver<EventResponseProto> responseObserver) {
+
+        List<String> events = new ArrayList<>();
+        for(Event event : eventService.findAll()){events.add(event.getDescription());}
+
+        EventResponseProto responseProto = EventResponseProto.newBuilder().addAllEvents(events).build();
+
         responseObserver.onNext(responseProto);
         responseObserver.onCompleted();
     }

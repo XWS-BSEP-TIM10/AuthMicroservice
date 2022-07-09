@@ -107,3 +107,9 @@ message TwoFAStatusResponseProto {
   bool enabled2FA = 1;
   string status = 2;
 }
+
+message EventProto{}
+
+message EventResponseProto{
+  repeated string events = 1;
+}

@@ -34,6 +34,7 @@ public class UserServiceImpl implements UserService {
         return user.orElse(null);
     }
 
+
     public List<User> findAll() throws AccessDeniedException {
         return userRepository.findAll();
     }

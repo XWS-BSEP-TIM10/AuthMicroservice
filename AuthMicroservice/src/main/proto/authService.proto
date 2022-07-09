@@ -5,6 +5,7 @@ package proto;
 import "authModel.proto";
 
 service AuthGrpcService{
+  rpc getEvents (EventProto) returns (EventResponseProto);
   rpc addUser (NewUserProto) returns (NewUserResponseProto);
   rpc login (LoginProto) returns (LoginResponseProto);
   rpc verifyUserAccount(VerifyAccountProto) returns (VerifyAccountResponseProto);
