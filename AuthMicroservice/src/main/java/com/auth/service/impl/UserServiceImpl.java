@@ -79,11 +79,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User update(String id, String username) {
-        User user = findById(id);
-        if (user == null || findByUsername(username) != null)
+        try {
+            User user = findById(id);
+            if (user == null || findByUsername(username) != null)
+                return null;
+            user.setUsername(username);
+            return userRepository.save(user);
+        }catch(Exception e){
             return null;
-        user.setUsername(username);
-        return userRepository.save(user);
+        }
     }
 
     @Override

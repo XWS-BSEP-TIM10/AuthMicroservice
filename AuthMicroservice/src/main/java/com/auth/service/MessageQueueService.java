@@ -7,6 +7,7 @@ import com.auth.model.VerificationToken;
 import com.auth.saga.OrchestratorResponseDTO;
 import com.auth.saga.UpdateUserRequestDto;
 import com.auth.saga.UpdateUserResponseDto;
+import com.auth.service.impl.LoggerServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.nats.client.Connection;
@@ -30,6 +31,8 @@ public class MessageQueueService {
     @Autowired
     private RoleService roleService;
 
+    private final LoggerServiceImpl loggerService;
+
     @Autowired
     private VerificationTokenService verificationTokenService;
 
@@ -39,6 +42,7 @@ public class MessageQueueService {
     private Connection nats;
 
     public MessageQueueService() {
+        this.loggerService = new LoggerServiceImpl(this.getClass());
         try {
             String natsURI = System.getenv("NATS_URI") == null ? "localhost" : System.getenv("NATS_URI");
             if (natsURI.equals("localhost")) {
@@ -108,11 +112,12 @@ public class MessageQueueService {
 
             User updatedUser = userService.update(newUserDTO.getId(), newUserDTO.getUsername());
             UpdateUserResponseDto responseDto;
-            if (updatedUser == null)
+            if (updatedUser == null) {
+                loggerService.unsuccessfulRegistration(newUserDTO.getId());
                 responseDto = new UpdateUserResponseDto(false, "update failed!", newUserDTO.getOldUser());
-            else
+            }else {
                 responseDto = new UpdateUserResponseDto(true, "success!", null);
-
+            }
             publishResponseForUpdateUser(responseDto);
         });
     }

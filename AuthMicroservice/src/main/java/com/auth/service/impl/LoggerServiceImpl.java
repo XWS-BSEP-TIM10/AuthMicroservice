@@ -100,4 +100,8 @@ public class LoggerServiceImpl {
     public void two2FACheckFailed(String userId) {
         logger.warn("Checking two-factor status failed. User id: {}", userId);
     }
+
+    public void unsuccessfulRegistration(String userId) {
+        logger.error("User registration failed. User id: {}", userId);
+    }
 }
